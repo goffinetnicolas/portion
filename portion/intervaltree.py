@@ -370,17 +370,25 @@ class IntervalTree:
             self.rb_delete_fixup(x)
         self.size = self.size - 1
 
-    def check_overlap(self, x, z):
+    def recurse(self, x , z, delete, fuse):
         if x.is_nil():
-            pass
+            return
         elif z.interval <= x.interval:
             pass
         elif z.interval >= x.interval:
             pass
-        elif x.interval in z.interval:
-            pass
+        elif z.interval.contains(x):
+            if True :
+                fuse.append(x)
+            delete.append(x)
+        elif z < x.interval:
+            self.recurse(x.left, z, delete, fuse)
         else:
-            raise TypeError("unexpected error")
+            self.recurse(x.right, z, delete, fuse)
+    def check_overlap(self, x, z):
+        delete=[]
+        fuse=[]
+        self.recurse(x,z,delete,fuse)
 
     def insertInterval(self, z):
         if z.interval.empty:
@@ -438,8 +446,12 @@ class IntervalTree:
                 # special case
                 x.interval = z.interval
                 x.value = z.value
-                self.check_overlap(x.right, z)
-                self.check_overlap(x.left, z)
+                delete1=[]
+                spec1=[]
+                delete2 = []
+                spec2 = []
+                self.check_overlap(x.right, z, delete1, spec1)
+                self.check_overlap(x.left, z, delete2, spec2)
                 return
             else:
                 raise TypeError("unexpected error")
