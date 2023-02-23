@@ -19,7 +19,41 @@ def generate(length):
         return intervaltree.Node(p.singleton(a))
 
 
-a = intervaltree.Node(p.closed(10, 11), "a")
-b = intervaltree.Node(p.closed(9, 10), "b")
-c = intervaltree.Node(p.closed(4, 8), "c")
-print(a.interval - b.interval)
+if __name__ == "__main__":
+
+    '''
+    a = intervaltree.Node(p.closed(10, 11), "a")
+    b = intervaltree.Node(p.closed(9, 10), "b")
+    c = intervaltree.Node(p.closed(4, 8), "c")
+    print(a.interval - b.interval)
+    '''
+
+    tree = intervaltree.IntervalTree()
+
+    a = intervaltree.Node(p.closed(16, 21), 'a')
+    b = intervaltree.Node(p.closed(9, 10), 'b')
+    c = intervaltree.Node(p.closed(28, 29), 'c')
+    d = intervaltree.Node(p.closedopen(4, 5), 'd')
+    e = intervaltree.Node(p.singleton(15), 'e')
+    f = intervaltree.Node(p.openclosed(21, 23), 'f')
+    g = intervaltree.Node(p.closedopen(30, 32), 'g')
+    h = intervaltree.Node(p.singleton(24), 'h')
+    i = intervaltree.Node(p.singleton(40), 'i')
+
+    tree.insert(a)
+    tree.insert(b)
+    tree.insert(c)
+    tree.insert(d)
+    tree.insert(e)
+    tree.insert(f)
+    tree.insert(g)
+    tree.insert(h)
+    tree.insert(i)
+
+    print(tree)
+
+    tree.delete(f)
+    tree.delete(h)
+    tree.delete(g)
+
+    print(tree)

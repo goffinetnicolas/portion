@@ -36,7 +36,7 @@ class IntervalTree:
     def __init__(self):
 
         # define NIL node
-        self.nil = Node("NIL", False)
+        self.nil = Node("NIL", "NIL", False)
 
         # define empty root
         self.root = self.nil
@@ -285,6 +285,7 @@ class IntervalTree:
         z.right = self.nil
         z.color = True
         self.rb_insert_fixup(z)
+        self.size += 1
 
     def rb_transplant(self, u, v):
         if u.p.is_nil():
@@ -370,7 +371,7 @@ class IntervalTree:
             self.rb_delete_fixup(x)
         self.size = self.size - 1
 
-    def recurse(self, x , z, delete, fuse):
+    def recurse(self, x , z, keep, delete, fuse):
         if x.is_nil():
             return
         elif z.interval <= x.interval:
@@ -378,17 +379,17 @@ class IntervalTree:
         elif z.interval >= x.interval:
             pass
         elif z.interval.contains(x):
-            if True :
-                fuse.append(x)
             delete.append(x)
         elif z < x.interval:
             self.recurse(x.left, z, delete, fuse)
         else:
             self.recurse(x.right, z, delete, fuse)
     def check_overlap(self, x, z):
+        keep=[]
         delete=[]
         fuse=[]
-        self.recurse(x,z,delete,fuse)
+        self.recurse(x,z,keep,delete,fuse)
+        return (keep,delete,fuse)
 
     def insertInterval(self, z):
         if z.interval.empty:
@@ -446,12 +447,8 @@ class IntervalTree:
                 # special case
                 x.interval = z.interval
                 x.value = z.value
-                delete1=[]
-                spec1=[]
-                delete2 = []
-                spec2 = []
-                self.check_overlap(x.right, z, delete1, spec1)
-                self.check_overlap(x.left, z, delete2, spec2)
+                self.check_overlap(x.right, z)
+                self.check_overlap(x.left, z)
                 return
             else:
                 raise TypeError("unexpected error")
