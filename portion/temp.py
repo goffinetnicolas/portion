@@ -1,22 +1,34 @@
 import portion as p
 import intervaltree
 import random as r
-
+import timeit as t
 
 def generate(length):
     num = r.randint(0, 4)
     a = r.randint(-2147483648, 2147483647)
     b = a + length
     if num == 0:
-        return intervaltree.Node(p.open(a, b))
+        return p.open(a, b)
     if num == 1:
-        return intervaltree.Node(p.closed(a, b))
+        return p.closed(a, b)
     if num == 2:
-        return intervaltree.Node(p.openclosed(a, b))
+        return p.openclosed(a, b)
     if num == 3:
-        return intervaltree.Node(p.closedopen(a, b))
+        return p.closedopen(a, b)
     if num == 4:
-        return intervaltree.Node(p.singleton(a))
+        return p.singleton(a)
+
+def dic_interval_tree_test_insert(d):
+    tree = intervaltree.IntervalTree()
+    for k,v in d:
+        tree.insertInterval(intervaltree.Node(k,v))
+    return tree
+
+def dict_interval_list_test_insert(l):
+    return p.IntervalDict(l)
+
+def test():
+    print(t.timeit(""))
 
 
 if __name__ == "__main__":
@@ -26,7 +38,7 @@ if __name__ == "__main__":
     b = intervaltree.Node(p.closed(9, 10), "b")
     c = intervaltree.Node(p.closed(4, 8), "c")
     print(a.interval - b.interval)
-    '''
+    
 
     tree = intervaltree.IntervalTree()
 
@@ -50,10 +62,8 @@ if __name__ == "__main__":
     tree.insert(h)
     tree.insert(i)
 
+    tree.root.left=tree.nil
+    tree.left_rotate(tree.root)
+    tree.rb_delete_fixup(tree.root.right)
     print(tree)
-
-    tree.delete(f)
-    tree.delete(h)
-    tree.delete(g)
-
-    print(tree)
+    '''

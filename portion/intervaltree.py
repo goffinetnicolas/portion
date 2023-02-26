@@ -5,11 +5,14 @@ from portion import Bound, Interval
 
 class Node:
     def __init__(self, interval, value, color=True):
+
         self.interval = interval
         self.value = value
+
         self.p = None
         self.left = None
         self.right = None
+
         self.min = None
         self.max = None
 
@@ -33,15 +36,22 @@ class Node:
 
 
 class IntervalTree:
-    def __init__(self):
+    def __init__(self, root):
 
         # define NIL node
         self.nil = Node("NIL", "NIL", False)
 
-        # define empty root
-        self.root = self.nil
+        if root == None:
+            # define empty root
+            self.root = self.nil
+        else:
+            self.root = root
 
-        self.size = 0
+    def from_subtree(self, x):
+        tree = IntervalTree()
+        tree.root = x
+        return tree
+
 
     def __repr__(self):
         return self.display(self.root)
@@ -116,7 +126,7 @@ class IntervalTree:
     def check_node_black_colors(self):
         current = self.minimum(self.root)
         while not current.is_nil():
-            if not self.check_black_colors(current):
+            if not self.black_colors(current):
                 return False
             current = self.successor(current)
         return True
@@ -171,7 +181,7 @@ class IntervalTree:
         c = self.check_red_colors()
 
         # For each node, all simple paths from the node to descendant leaves contain the same number of black nodes.
-        d = self.check_node_black_colors()
+        d = self.check_black_colors()
 
         return a and b and c and d
 
@@ -285,7 +295,6 @@ class IntervalTree:
         z.right = self.nil
         z.color = True
         self.rb_insert_fixup(z)
-        self.size += 1
 
     def rb_transplant(self, u, v):
         if u.p.is_nil():
@@ -369,9 +378,40 @@ class IntervalTree:
             y.color = z.color
         if y_original_color == False:
             self.rb_delete_fixup(x)
-        self.size = self.size - 1
 
-    def recurse(self, x , z, keep, delete, fuse):
+    def join(self, l, k, r):
+        pass
+
+    def split(self, x, k):
+        if x.is_nil():
+            return IntervalTree(), False, IntervalTree()
+        if k == x.interval:
+            return IntervalTree(x.left), True, IntervalTree(x.right)
+        if k < x.interval:
+            (l, b, r) = self.split(x.left, k)
+            return l, b, self.join(r, x.interval, x.right)
+        (l, b, r) = self.split(x.right, k)
+        return self.join(x.left, x.interval, l), b, x.right
+
+    def delete_subtree1(self, x, y):
+        min = y.min
+        max = y.max
+        split1 = self.split(x.root, min)
+
+    def delete_subtree2(self, x, y):
+        if y.size > x / 2:
+            # create new tree
+            pass
+        else:
+            # delete all nodesd in y
+            current = self.minimum(y)
+            next = self.successor(current)
+            while current != self.successor(self.maximum(y)):
+                self.delete(current)
+                current = next
+                next = self.successor(next)
+
+    def check_overlap(self, x, z):
         if x.is_nil():
             return
         elif z.interval <= x.interval:
@@ -379,17 +419,13 @@ class IntervalTree:
         elif z.interval >= x.interval:
             pass
         elif z.interval.contains(x):
-            delete.append(x)
+            pass
         elif z < x.interval:
-            self.recurse(x.left, z, delete, fuse)
+            self.recurse(x.left, z)
+        elif z > x.interval:
+            self.recurse(x.right, z)
         else:
-            self.recurse(x.right, z, delete, fuse)
-    def check_overlap(self, x, z):
-        keep=[]
-        delete=[]
-        fuse=[]
-        self.recurse(x,z,keep,delete,fuse)
-        return (keep,delete,fuse)
+            raise TypeError("unexpected error")
 
     def insertInterval(self, z):
         if z.interval.empty:
@@ -465,4 +501,3 @@ class IntervalTree:
         z.right = self.nil
         z.color = True
         self.rb_insert_fixup(z)
-        self.size = self.size + 1
