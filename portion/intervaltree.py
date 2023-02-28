@@ -13,8 +13,10 @@ class Node:
         self.left = None
         self.right = None
 
-        self.min = None
-        self.max = None
+        self.left_enclosure = interval
+        self.right_enclosure = interval
+
+        self.size = 1
 
         # False = black
         # True = red
@@ -36,7 +38,7 @@ class Node:
 
 
 class IntervalTree:
-    def __init__(self, root):
+    def __init__(self, root=None):
 
         # define NIL node
         self.nil = Node("NIL", "NIL", False)
@@ -51,7 +53,6 @@ class IntervalTree:
         tree = IntervalTree()
         tree.root = x
         return tree
-
 
     def __repr__(self):
         return self.display(self.root)
@@ -379,24 +380,21 @@ class IntervalTree:
         if y_original_color == False:
             self.rb_delete_fixup(x)
 
-    def join(self, l, k, r):
-        pass
+    def delete_using_interval(self, x, interval):
+        while not x.is_nil():
+            if interval == x.interval:
+                self.delete(x)
+            if x.interval < interval:
+                x = x.right
+            else:
+                x = x.left
 
-    def split(self, x, k):
-        if x.is_nil():
-            return IntervalTree(), False, IntervalTree()
-        if k == x.interval:
-            return IntervalTree(x.left), True, IntervalTree(x.right)
-        if k < x.interval:
-            (l, b, r) = self.split(x.left, k)
-            return l, b, self.join(r, x.interval, x.right)
-        (l, b, r) = self.split(x.right, k)
-        return self.join(x.left, x.interval, l), b, x.right
-
-    def delete_subtree1(self, x, y):
-        min = y.min
-        max = y.max
-        split1 = self.split(x.root, min)
+    def delete_using_value(self, value):
+        current = self.minimum(self.root)
+        while not current.is_nil():
+            if current.value == value:
+                self.delete(current)
+            current = self.successor(current)
 
     def delete_subtree2(self, x, y):
         if y.size > x / 2:
@@ -411,19 +409,34 @@ class IntervalTree:
                 current = next
                 next = self.successor(next)
 
-    def check_overlap(self, x, z):
+    def check_overlap(self, x, r, z):
         if x.is_nil():
             return
-        elif z.interval <= x.interval:
+        elif r < x.interval:
+            return self.check_overlap(x.left, r, z)
+        elif r > x.interval:
+            return self.check_overlap(x.right, r, z)
+        elif r.contains(x):
+            # delete x
             pass
-        elif z.interval >= x.interval:
-            pass
-        elif z.interval.contains(x):
-            pass
-        elif z < x.interval:
-            self.recurse(x.left, z)
-        elif z > x.interval:
-            self.recurse(x.right, z)
+        elif x.interval >= r.interval:
+            if x.value == z.value:
+                # delete x and extend z
+                pass
+            else:
+                # modify right bound of x
+                x.interval = x.interval - r
+                r = r - x.interval
+                return self.check_overlap(x.right, r, z)
+        elif r.interval >= x.interval:
+            if x.value == z.value:
+                # delete x and extend z
+                pass
+            else:
+                # modify left bound of x
+                x.interval = x.interval - r
+                r = r - x.interval
+                return self.check_overlap(x.left, r, z)
         else:
             raise TypeError("unexpected error")
 
@@ -442,7 +455,6 @@ class IntervalTree:
                 x.value = z.value
                 return
             elif z.interval in x.interval:
-                # must be tested
                 if z.value == x.value:
                     # x = [16,21] and value is "red"
                     # z = [17,20] or [16,20] or [17,21] and value is "red"
@@ -457,34 +469,32 @@ class IntervalTree:
                         self.insertInterval(Node(interval, x.value))
                 return
             elif z.interval <= x.interval:
-                # must be tested
                 if x.value == z.value:
                     # extend x value
                     x.interval = x.interval | z.interval
-                    self.check_overlap(x.left, z)
-                else:
-                    # cut x value
-                    x.interval = x.interval - z.interval
-                    pass
-                x = x.left
-            elif z.interval >= x.interval:
-                # must be tested
-                if x.value == z.value:
-                    # extend x value
-                    x.interval = x.interval | z.interval
-                    self.check_overlap(x.right, z)
+                    r = z.interval - x.interval
+                    self.check_overlap(x.left, r, z)
                     return
                 else:
-                    # cut x value
+                    # cut left x value
+                    x.interval = x.interval - z.interval
+                    x = x.left
+            elif x.interval >= z.interval:
+                if x.value == z.value:
+                    x.interval = x.interval | z.interval
+                    r = z.interval - x.interval
+                    self.check_overlap(x.right, r, z)
+                    return
+                else:
+                    # cut right x value
                     x.interval = x.interval - z.interval
                     x = x.right
             elif x.interval in z.interval:
-                # must be tested
-                # special case
                 x.interval = z.interval
                 x.value = z.value
-                self.check_overlap(x.right, z)
-                self.check_overlap(x.left, z)
+                r = z.interval - x.interval
+                self.check_overlap(x.left, r[0], z)
+                self.check_overlap(x.right, r[1], z)
                 return
             else:
                 raise TypeError("unexpected error")

@@ -33,13 +33,12 @@ def test():
 
 if __name__ == "__main__":
 
-    '''
-    a = intervaltree.Node(p.closed(10, 11), "a")
-    b = intervaltree.Node(p.closed(9, 10), "b")
-    c = intervaltree.Node(p.closed(4, 8), "c")
-    print(a.interval - b.interval)
-    
 
+    x = intervaltree.Node(p.closed(23, 24), "a")
+    r = intervaltree.Node(p.closed(23, 28), "b")
+    print(x.interval >= r.interval)
+    
+    '''
     tree = intervaltree.IntervalTree()
 
     a = intervaltree.Node(p.closed(16, 21), 'a')
@@ -62,8 +61,8 @@ if __name__ == "__main__":
     tree.insert(h)
     tree.insert(i)
 
-    tree.root.left=tree.nil
-    tree.left_rotate(tree.root)
-    tree.rb_delete_fixup(tree.root.right)
+    print(tree)
+    tree.delete_using_value('g')
     print(tree)
     '''
+
