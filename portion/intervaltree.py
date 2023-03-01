@@ -1,4 +1,3 @@
-
 class Node:
     def __init__(self, interval, value, color=True):
 
@@ -441,6 +440,21 @@ class IntervalTree:
                 return self.check_overlap(x.left, r, z)
         else:
             raise TypeError("unexpected error")
+
+    def check_overlap2(self, x, r, z):
+        # TODO check x
+        if x.left.is_nil() and x.right.is_nil():
+            return
+        elif x.left.is_nil():
+            # TODO if right is in range, go to x.right
+            pass
+        elif x.right.is_nil():
+            # TODO if left is in range, go to x.left
+            pass
+        else:
+            # TODO if right is in range, go to x.right
+            # TODO if left is in range, go to x.left
+            pass
 
     def insertInterval(self, z):
         if z.interval.empty:
