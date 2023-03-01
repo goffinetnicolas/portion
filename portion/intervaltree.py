@@ -1,7 +1,3 @@
-import random
-
-from portion import Bound, Interval
-
 
 class Node:
     def __init__(self, interval, value, color=True):
@@ -16,7 +12,7 @@ class Node:
         self.left_enclosure = interval
         self.right_enclosure = interval
 
-        self.size = 1
+        self.size = 0
 
         # False = black
         # True = red
@@ -27,32 +23,24 @@ class Node:
 
     def __eq__(self, other):
         if isinstance(other, Node):
-            return self.interval == other.interval and self.value == other.value and self.color == other.color
+            return self.interval == other.interval and self.value == other.value
         return NotImplemented
 
     def __repr__(self):
         if self.color is True:
-            return f'interval: {self.interval}, value: {self.value}, color: red'
+            return f'interval: {self.interval}, value: {self.value}, color: red, size : {self.size}'
         if self.color is False:
-            return f'interval: {self.interval}, value: {self.value}, color: black'
+            return f'interval: {self.interval}, value: {self.value}, color: black, size : {self.size}'
 
 
 class IntervalTree:
-    def __init__(self, root=None):
+    def __init__(self):
 
         # define NIL node
         self.nil = Node("NIL", "NIL", False)
 
-        if root == None:
-            # define empty root
-            self.root = self.nil
-        else:
-            self.root = root
-
-    def from_subtree(self, x):
-        tree = IntervalTree()
-        tree.root = x
-        return tree
+        # define empty root
+        self.root = self.nil
 
     def __repr__(self):
         return self.display(self.root)
@@ -228,6 +216,8 @@ class IntervalTree:
             x.p.right = y
         y.left = x
         x.p = y
+        y.size = x.size
+        x.size = x.left.size + x.right.size + 1
 
     def right_rotate(self, x):
         y = x.left
@@ -243,6 +233,8 @@ class IntervalTree:
             x.p.left = y
         y.right = x
         x.p = y
+        y.size = x.size
+        x.size = x.left.size + x.right.size + 1
 
     def rb_insert_fixup(self, z):
         while z.p.color == True:
@@ -296,6 +288,10 @@ class IntervalTree:
         z.right = self.nil
         z.color = True
         self.rb_insert_fixup(z)
+        # update size
+        while not z.is_nil():
+            z.size = z.size + 1
+            z = z.p
 
     def rb_transplant(self, u, v):
         if u.p.is_nil():
@@ -379,6 +375,12 @@ class IntervalTree:
             y.color = z.color
         if y_original_color == False:
             self.rb_delete_fixup(x)
+
+        # update size
+        y.size = z.size
+        while not y.is_nil():
+            y.size = y.size - 1
+            y = y.p
 
     def delete_using_interval(self, x, interval):
         while not x.is_nil():
