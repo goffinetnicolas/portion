@@ -410,51 +410,107 @@ class IntervalTree:
                 current = next
                 next = self.successor(next)
 
-    def check_overlap(self, x, r, z):
-        if x.is_nil():
-            return
-        elif r < x.interval:
-            return self.check_overlap(x.left, r, z)
-        elif r > x.interval:
-            return self.check_overlap(x.right, r, z)
-        elif r.contains(x):
-            # delete x
-            pass
-        elif x.interval >= r.interval:
-            if x.value == z.value:
-                # delete x and extend z
-                pass
-            else:
-                # modify right bound of x
-                x.interval = x.interval - r
-                r = r - x.interval
-                return self.check_overlap(x.right, r, z)
-        elif r.interval >= x.interval:
-            if x.value == z.value:
-                # delete x and extend z
-                pass
-            else:
-                # modify left bound of x
-                x.interval = x.interval - r
-                r = r - x.interval
-                return self.check_overlap(x.left, r, z)
-        else:
-            raise TypeError("unexpected error")
 
-    def check_overlap2(self, x, r, z):
-        # TODO check x
+    def check_overlap(self, x, r, z):
         if x.left.is_nil() and x.right.is_nil():
-            return
+            if x.interval <= r:
+                if x.interval in r:
+                    return self.delete(x)
+                elif x.value == z.value:
+                    # delete x node and extend z
+                    z.interval = z.interval | x.interval
+                    return self.delete(x)
+                else:
+                    # not the same value
+                    # cut x value
+                    x.interval = x.interval - r
+                    return
+            elif x.interval >= r:
+                if x.interval in r:
+                    return self.delete(x)
+                elif x.value == z.value:
+                    # delete x node and extend z
+                    z.interval = z.interval | x.interval
+                    return self.delete(x)
+                else:
+                    # not the same value
+                    # cut x value
+                    x.interval = x.interval - r
+                    return
         elif x.left.is_nil():
-            # TODO if right is in range, go to x.right
-            pass
+            if x.interval < r:
+                # TODO check right enclosure
+                return self.check_overlap(x.right, r, z)
+            else:
+                # x.interval <= r
+                if x.interval in r:
+                    # delete subtree x
+                    return self.delete_subtree(x)
+                elif x.value == z.value:
+                    # delete x node and extend z
+                    z.interval = z.interval | x.interval
+                    return self.delete_subtree(x)
+                else:
+                    # not the same value
+                    # cut x value
+                    x.interval = x.interval - r
+                    return self.delete_subtree(x.right)
         elif x.right.is_nil():
-            # TODO if left is in range, go to x.left
-            pass
+            if x.interval > r:
+                # TODO check left enclosure
+                return self.check_overlap(x.left, r, z)
+            else:
+                # x.interval >= r
+                if x.interval in r:
+                    # delete subtree x
+                    return self.delete_subtree(x)
+                if x.value == z.value:
+                    # delete x node and extend z
+                    z.interval = z.interval | x.interval
+                    return self.delete_subtree(x)
+                else:
+                    x.interval = x.interval - r
+                    return self.delete_subtree(x.left)
         else:
-            # TODO if right is in range, go to x.right
-            # TODO if left is in range, go to x.left
-            pass
+            # both children are not nil
+            if x.interval < r:
+                # TODO check right enclosure
+                return self.check_overlap(x.right, r, z)
+            elif x.interval > r:
+                # TODO check left enclosure
+                return self.check_overlap(x.left, r, z)
+            elif x.interval <= r:
+                if x.interval in r:
+                    # delete x and x.right
+                    self.delete_subtree(x.right)
+                    self.delete(x)
+                    # TODO check left enclosure
+                    return self.check_overlap(x.left, r, z)
+                elif x.value == z.value:
+                    # delete x node and extend z
+                    z.interval = z.interval | x.interval
+                    self.delete_subtree(x.right)
+                    return self.delete(x)
+                else:
+                    x.interval = x.interval - r
+                    return self.delete_subtree(x.right)
+            else:
+                # x.interval >= r
+                if x.interval in r:
+                    # delete x and x.left
+                    self.delete_subtree(x.left)
+                    self.delete(x)
+                    # TODO check right enclosure
+                    return self.check_overlap(x.right, r, z)
+                elif x.value == z.value:
+                    # delete x node and extend z
+                    z.interval = z.interval | x.interval
+                    self.delete_subtree(x.left)
+                    return self.delete(x)
+                else:
+                    x.interval = x.interval - r
+                    return self.delete_subtree(x.left)
+
 
     def insertInterval(self, z):
         if z.interval.empty:
@@ -489,31 +545,38 @@ class IntervalTree:
                     # extend x value
                     x.interval = x.interval | z.interval
                     r = z.interval - x.interval
-                    self.check_overlap(x.left, r, z)
+                    if not x.left.is_nil():
+                        # TODO check left enclosure
+                        self.check_overlap(x.left, r, z)
                     return
                 else:
                     # cut left x value
                     x.interval = x.interval - z.interval
                     x = x.left
-            elif x.interval >= z.interval:
+            elif z.interval >= x.interval:
                 if x.value == z.value:
                     x.interval = x.interval | z.interval
                     r = z.interval - x.interval
-                    self.check_overlap(x.right, r, z)
+                    if not x.right.is_nil():
+                        # TODO check right enclosure
+                        self.check_overlap(x.right, r, z)
                     return
                 else:
                     # cut right x value
                     x.interval = x.interval - z.interval
                     x = x.right
-            elif x.interval in z.interval:
+            else:
+                # x is included in z
                 x.interval = z.interval
                 x.value = z.value
                 r = z.interval - x.interval
-                self.check_overlap(x.left, r[0], z)
-                self.check_overlap(x.right, r[1], z)
+                if not x.left.is_nil():
+                    # TODO check left enclosure
+                    self.check_overlap(x.left, r[0], z)
+                if not x.right.is_nil():
+                    # TODO check right enclosure
+                    self.check_overlap(x.right, r[1], z)
                 return
-            else:
-                raise TypeError("unexpected error")
 
         # normal insertion (red-black tree insertion)
         z.p = y
