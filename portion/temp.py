@@ -33,24 +33,25 @@ def test():
 
 if __name__ == "__main__":
 
-
+    '''
     x = intervaltree.Node(p.closed(42, 48), "a")
     r = intervaltree.Node(p.closed(40, 50), "b")
     print(x.interval <= r.interval)
     print(x.interval in r.interval)
-
-    
     '''
+    
+
     tree = intervaltree.IntervalTree()
 
-    a = intervaltree.Node(p.closed(16, 18), 'a')
+    a = intervaltree.Node(p.closed(16, 21), 'a')
     b = intervaltree.Node(p.closed(9, 10), 'b')
-    c = intervaltree.Node(p.closed(30, 31), 'c')
-    d = intervaltree.Node(p.closedopen(4, 5), 'd')
+    c = intervaltree.Node(p.closed(28, 29), 'c')
+    d = intervaltree.Node(p.closed(4, 5), 'd')
     e = intervaltree.Node(p.singleton(15), 'e')
     f = intervaltree.Node(p.openclosed(21, 23), 'f')
-    g = intervaltree.Node(p.closedopen(28, 29), 'g')
-    h = intervaltree.Node(p.singleton(40), 'h')
+    g = intervaltree.Node(p.closedopen(30, 32), 'g')
+    h = intervaltree.Node(p.singleton(24), 'h')
+    i = intervaltree.Node(p.singleton(40), 'i')
 
     tree.insert(a)
     tree.insert(b)
@@ -60,10 +61,29 @@ if __name__ == "__main__":
     tree.insert(f)
     tree.insert(g)
     tree.insert(h)
+    tree.insert(i)
 
     print(tree)
-    tree.delete(h)
-
+    z = intervaltree.Node(p.closed(22,30), 'g')
+    c.interval=p.closed(22,30)
+    safesubtree = []
+    safenode = []
+    modify = []
+    unsafesubtree = []
+    unsafenode = []
+    tree.check_overlap3(c.left,z,safesubtree,safenode,modify,unsafesubtree,unsafenode)
+    print()
     print(tree)
-    '''
+    print()
+    print("safesubtree ",safesubtree)
+    print()
+    print("safenode ",safenode)
+    print()
+    print("modify ",modify)
+    print()
+    print("unsafesubtree ",unsafesubtree)
+    print()
+    print("unsafenode ",unsafenode)
+
+
 
