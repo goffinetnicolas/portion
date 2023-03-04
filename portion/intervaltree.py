@@ -575,37 +575,57 @@ class IntervalTree:
             return
         elif x.interval <= z.interval:
             if x.value == z.value:
-                safesubtree.append(x.left)
-                unsafesubtree.append(x.right)
+                if not x.left.is_nil():
+                    safesubtree.append(x.left)
+                if not x.right.is_nil():
+                    unsafesubtree.append(x.right)
                 modify.append(x)
+                unsafenode.append(x)
                 return
             else:
                 x.interval = x.interval - z.interval
                 safenode.append(x)
-                unsafesubtree.append(x.right)
+                if not x.right.is_nil():
+                    unsafesubtree.append(x.right)
                 return
         else:
             # x.interval >= z
             if x.value == z.value:
-                safesubtree.append(x.right)
-                unsafesubtree.append(x.left)
+                if not x.right.is_nil():
+                    safesubtree.append(x.right)
+                if not x.left.is_nil():
+                    unsafesubtree.append(x.left)
                 modify.append(x)
+                unsafenode.append(x)
                 return
             else:
                 x.interval = x.interval - z.interval
                 safenode.append(x)
-                unsafesubtree.append(x.left)
+                if not x.left.is_nil():
+                    unsafesubtree.append(x.left)
                 return
 
     def overlap3_helper(self, x, z):
-        safesubtree = [], safenode = [], modify = [], unsafesubtree = [], unsafenode = []
+        safesubtree = [], safenode = [x], modify = [], unsafesubtree = [], unsafenode = []
         self.check_overlap3(x, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
         '''
         compter safe et unsafe
         si trop de noeuds à supprimer par rapport à root.size/2 ---> nouveau arbre et compter les noeuds safe depuis root
         sinon supprimer en boucle
         '''
-
+        safe = len(safenode)
+        for node in safesubtree:
+            safe = safe + node.size
+        unsafe = len(unsafenode)
+        for node in unsafesubtree:
+            unsafe = unsafe + node.size
+        if unsafe >= self.root.size/2:
+            # create new tree
+            self.root = z
+        else:
+            pass
+            for node in unsafenode:
+                self.delete(node)
 
     def insertInterval(self, z):
         if z.interval.empty:

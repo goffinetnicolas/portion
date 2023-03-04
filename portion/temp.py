@@ -64,26 +64,42 @@ if __name__ == "__main__":
     tree.insert(i)
 
     print(tree)
-    z = intervaltree.Node(p.closed(22,30), 'g')
-    c.interval=p.closed(22,30)
-    safesubtree = []
-    safenode = []
-    modify = []
-    unsafesubtree = []
-    unsafenode = []
-    tree.check_overlap3(c.left,z,safesubtree,safenode,modify,unsafesubtree,unsafenode)
     print()
+
+    def delete_subtree(tree, x):
+        current = tree.minimum(x)
+        next = tree.successor(current)
+        while current != tree.successor(tree.maximum(x)):
+            print(current)
+            print(next)
+            print()
+            tree.delete(current)
+            current = next
+            next = tree.successor(next)
+
+    delete_subtree(tree, c)
     print(tree)
-    print()
-    print("safesubtree ",safesubtree)
-    print()
-    print("safenode ",safenode)
-    print()
-    print("modify ",modify)
-    print()
-    print("unsafesubtree ",unsafesubtree)
-    print()
-    print("unsafenode ",unsafenode)
+
+    # z = intervaltree.Node(p.closed(22,30), 'g')
+    # c.interval=p.closed(22,30)
+    # safesubtree = []
+    # safenode = []
+    # modify = []
+    # unsafesubtree = []
+    # unsafenode = []
+    # tree.check_overlap3(c.right,z,safesubtree,safenode,modify,unsafesubtree,unsafenode)
+    # print()
+    # print(tree)
+    # print()
+    # print("safesubtree ",safesubtree)
+    # print()
+    # print("safenode ",safenode)
+    # print()
+    # print("modify ",modify)
+    # print()
+    # print("unsafesubtree ",unsafesubtree)
+    # print()
+    # print("unsafenode ",unsafenode)
 
 
 
