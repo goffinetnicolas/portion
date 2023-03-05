@@ -65,11 +65,9 @@ if __name__ == "__main__":
 
     print(tree)
 
-    tree.insertInterval(intervaltree.Node(p.closed(22,30), 'g'))
+    tree.insertInterval(intervaltree.Node(p.closed(0,30), 'g'))
 
     print(tree)
-    print()
-
 
 
     # z = intervaltree.Node(p.closed(22,30), 'g')

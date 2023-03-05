@@ -111,10 +111,10 @@ class IntervalTree:
             current = self.successor(current)
         return True
 
-    def check_node_black_colors(self):
+    def check_each_nodes_black_colors(self):
         current = self.minimum(self.root)
         while not current.is_nil():
-            if not self.black_colors(current):
+            if not self.check_black_colors(current):
                 return False
             current = self.successor(current)
         return True
@@ -169,7 +169,7 @@ class IntervalTree:
         c = self.check_red_colors()
 
         # For each node, all simple paths from the node to descendant leaves contain the same number of black nodes.
-        d = self.check_black_colors()
+        d = self.check_each_nodes_black_colors()
 
         return a and b and c and d
 
@@ -612,14 +612,12 @@ class IntervalTree:
         modify = []
         unsafesubtree = []
         unsafenode = []
-
-        self.check_overlap3(x, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
-        print(safesubtree)
-        print(safenode)
-        print(modify)
-        print(unsafesubtree)
-        print(unsafenode)
-        print()
+        # TODO check left enclosure
+        self.check_overlap3(x.left, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
+        # TODO check right enclosure
+        self.check_overlap3(x.right, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
+        for node in modify:
+            x.interval = x.interval | node.interval
         safe = len(safenode)
         for node in safesubtree:
             safe = safe + node.size
@@ -627,8 +625,8 @@ class IntervalTree:
         for node in unsafesubtree:
             unsafe = unsafe + node.size
         if unsafe >= self.root.size/2:
+            # too many nodes to delete
             # find other safe nodes in the tree
-            # create new tree
             current = self.minimum(self.root)
             while not current.is_nil():
                 if current == x:
@@ -636,14 +634,16 @@ class IntervalTree:
                 else:
                     safenode.append(current)
                     current = self.successor(current)
+            print(safenode)
             for node in safesubtree:
                 current = self.minimum(node)
                 while current != self.successor(self.maximum(node)):
                     safenode.append(current)
                     current = self.successor(current)
+            # create new tree and add all safe nodes
             self = IntervalTree()
             for node in safenode:
-                self.insert(node)
+                self.insert(Node(node.interval, node.value))
         else:
             for node in unsafesubtree:
                 current = self.minimum(node)
@@ -680,13 +680,12 @@ class IntervalTree:
             elif x.interval in z.interval:
                 x.interval = z.interval
                 x.value = z.value
-                # TODO check left enclosure
                 self.overlap3_helper(x, z)
+                return
             elif z.interval <= x.interval:
                 if x.value == z.value:
                     # extend x value
                     x.interval = x.interval | z.interval
-                    # TODO check left enclosure
                     self.overlap3_helper(x, z)
                     return
                 else:
@@ -697,7 +696,6 @@ class IntervalTree:
                 # z.interval >= x.interval
                 if x.value == z.value:
                     x.interval = x.interval | z.interval
-                    # TODO check right enclosure
                     self.overlap3_helper(x, z)
                     return
                 else:
@@ -718,6 +716,7 @@ class IntervalTree:
         z.color = True
         self.rb_insert_fixup(z)
         # update size
+        z.size = 1
         while not z.p.is_nil():
-            z.size = z.size + 1
             z = z.p
+            z.size = z.size + 1
