@@ -53,32 +53,24 @@ if __name__ == "__main__":
     h = intervaltree.Node(p.singleton(24), 'h')
     i = intervaltree.Node(p.singleton(40), 'i')
 
-    tree.insert(a)
-    tree.insert(b)
-    tree.insert(c)
-    tree.insert(d)
-    tree.insert(e)
-    tree.insert(f)
-    tree.insert(g)
-    tree.insert(h)
-    tree.insert(i)
+    tree.insertInterval(a)
+    tree.insertInterval(b)
+    tree.insertInterval(c)
+    tree.insertInterval(d)
+    tree.insertInterval(e)
+    tree.insertInterval(f)
+    tree.insertInterval(g)
+    tree.insertInterval(h)
+    tree.insertInterval(i)
+
+    print(tree)
+
+    tree.insertInterval(intervaltree.Node(p.closed(22,30), 'g'))
 
     print(tree)
     print()
 
-    def delete_subtree(tree, x):
-        current = tree.minimum(x)
-        next = tree.successor(current)
-        while current != tree.successor(tree.maximum(x)):
-            print(current)
-            print(next)
-            print()
-            tree.delete(current)
-            current = next
-            next = tree.successor(next)
 
-    delete_subtree(tree, c)
-    print(tree)
 
     # z = intervaltree.Node(p.closed(22,30), 'g')
     # c.interval=p.closed(22,30)
