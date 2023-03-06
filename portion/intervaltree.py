@@ -626,6 +626,15 @@ class IntervalTree:
             unsafe = unsafe + node.size
         if unsafe >= self.root.size/2:
             # too many nodes to delete
+
+            # fuse safe nodes and safe subtree
+            for node in safesubtree:
+                current = self.minimum(node)
+                while current != self.successor(self.maximum(node)):
+                    safenode.append(current)
+                    current = self.successor(current)
+            print(safenode)
+
             # find other safe nodes in the tree
             current = self.minimum(self.root)
             while not current.is_nil():
@@ -634,12 +643,7 @@ class IntervalTree:
                 else:
                     safenode.append(current)
                     current = self.successor(current)
-            print(safenode)
-            for node in safesubtree:
-                current = self.minimum(node)
-                while current != self.successor(self.maximum(node)):
-                    safenode.append(current)
-                    current = self.successor(current)
+
             # create new tree and add all safe nodes
             self = IntervalTree()
             for node in safenode:
