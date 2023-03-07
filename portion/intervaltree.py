@@ -633,19 +633,30 @@ class IntervalTree:
                 while current != self.successor(self.maximum(node)):
                     safenode.append(current)
                     current = self.successor(current)
-            print(safenode)
 
             # find other safe nodes in the tree
-            current = self.minimum(self.root)
-            while not current.is_nil():
-                if current == x:
-                    current = self.successor(self.maximum(current))
-                else:
+            current = x
+            while current.p != self.nil:
+                if current.p.left == current:
+                    current = current.p
                     safenode.append(current)
-                    current = self.successor(current)
-
+                    # add all nodes in the right subtree of current node
+                    left_sub = current.right
+                    current2 = self.minimum(left_sub)
+                    while current2 != self.successor(self.maximum(left_sub)):
+                        safenode.append(current2)
+                        current2 = self.successor(current2)
+                else:
+                    current = current.p
+                    safenode.append(current)
+                    # add all nodes in the left subtree of current node
+                    left_sub = current.left
+                    current2 = self.minimum(left_sub)
+                    while current2 != self.successor(self.maximum(left_sub)):
+                        safenode.append(current2)
+                        current2 = self.successor(current2)
             # create new tree and add all safe nodes
-            self = IntervalTree()
+            self.__init__()
             for node in safenode:
                 self.insert(Node(node.interval, node.value))
         else:
