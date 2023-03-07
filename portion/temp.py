@@ -63,7 +63,7 @@ if __name__ == "__main__":
     tree.insertInterval(h)
     tree.insertInterval(i)
 
-    print(tree)
+    #print(tree)
 
     tree.insertInterval(intervaltree.Node(p.closed(0,30), 'g'))
 
