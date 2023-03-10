@@ -1,5 +1,4 @@
 import portion as p
-import intervaltree
 import random as r
 import timeit as t
 
@@ -19,9 +18,9 @@ def generate(length):
         return p.singleton(a)
 
 def dic_interval_tree_test_insert(d):
-    tree = intervaltree.IntervalTree()
+    tree = p.IntervalTree()
     for k,v in d:
-        tree.insertInterval(intervaltree.Node(k,v))
+        tree.insertInterval(p.Node(k,v))
     return tree
 
 def dict_interval_list_test_insert(l):
@@ -41,17 +40,17 @@ if __name__ == "__main__":
     '''
     
 
-    tree = intervaltree.IntervalTree()
+    tree = p.IntervalTree()
 
-    a = intervaltree.Node(p.closed(16, 21), 'a')
-    b = intervaltree.Node(p.closed(9, 10), 'b')
-    c = intervaltree.Node(p.closed(28, 29), 'c')
-    d = intervaltree.Node(p.closed(4, 5), 'd')
-    e = intervaltree.Node(p.singleton(15), 'e')
-    f = intervaltree.Node(p.openclosed(21, 23), 'f')
-    g = intervaltree.Node(p.closedopen(30, 32), 'g')
-    h = intervaltree.Node(p.singleton(24), 'h')
-    i = intervaltree.Node(p.singleton(40), 'i')
+    a = p.Node(p.closed(16, 21), 'a')
+    b = p.Node(p.closed(9, 10), 'b')
+    c = p.Node(p.closed(28, 29), 'c')
+    d = p.Node(p.closed(4, 5), 'd')
+    e = p.Node(p.singleton(15), 'e')
+    f = p.Node(p.openclosed(21, 23), 'f')
+    g = p.Node(p.closedopen(30, 32), 'g')
+    h = p.Node(p.singleton(24), 'h')
+    i = p.Node(p.singleton(40), 'i')
 
     tree.insertInterval(a)
     tree.insertInterval(b)
@@ -65,31 +64,9 @@ if __name__ == "__main__":
 
     #print(tree)
 
-    tree.insertInterval(intervaltree.Node(p.closed(0,30), 'g'))
+    tree.insertInterval(p.Node(p.closed(0,30), 'g'))
 
     print(tree)
-
-
-    # z = intervaltree.Node(p.closed(22,30), 'g')
-    # c.interval=p.closed(22,30)
-    # safesubtree = []
-    # safenode = []
-    # modify = []
-    # unsafesubtree = []
-    # unsafenode = []
-    # tree.check_overlap3(c.right,z,safesubtree,safenode,modify,unsafesubtree,unsafenode)
-    # print()
-    # print(tree)
-    # print()
-    # print("safesubtree ",safesubtree)
-    # print()
-    # print("safenode ",safenode)
-    # print()
-    # print("modify ",modify)
-    # print()
-    # print("unsafesubtree ",unsafesubtree)
-    # print()
-    # print("unsafenode ",unsafenode)
 
 
 

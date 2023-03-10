@@ -5,10 +5,10 @@ class Node:
 
     def __init__(self, interval, value, color=True):
         """
-
         :param interval: an atomic interval.
         :param value: a value mapped to the interval.
         :param color: the color in the tree (red or black)
+
         """
 
         self.interval = interval
@@ -36,6 +36,10 @@ class Node:
         self.color = color
 
     def is_nil(self):
+        """
+        check if the node is a nil node
+        """
+
         return self.interval == "NIL"
 
     def __eq__(self, other):
@@ -51,7 +55,18 @@ class Node:
 
 
 class IntervalTree:
+    """
+    Represent an interval tree i.e. a red black tree storing atomic intervals mapped to values in the nodes
+    The intervals of the nodes cannot overlap each other
+    This data structure is used create an interval dictionary
+    """
+
     def __init__(self):
+        """
+        Create an empty interval tree
+        - Create the nil node
+        - Set nil node as root
+        """
 
         # define NIL node
         self.nil = Node("NIL", "NIL", False)
@@ -109,6 +124,10 @@ class IntervalTree:
         return y
 
     def check_nil_color(self):
+        """
+        Check if the tree is well-structured with respect to the nil node (must always be black)
+        """
+
         current = self.minimum(self.root)
         while not current.is_nil():
             if current.left.is_nil():
@@ -121,6 +140,11 @@ class IntervalTree:
         return True
 
     def check_red_colors(self):
+        """
+        Check if the tree is well-structured with respect to the red nodes
+        If a node is red, then both its children are black
+        """
+
         current = self.minimum(self.root)
         while not current.is_nil():
             if current.color == True:
@@ -130,6 +154,11 @@ class IntervalTree:
         return True
 
     def check_each_nodes_black_colors(self):
+        """
+        Check if the tree is well-structured with respect to the black nodes
+        For each node, all simple paths from the node to descendant leaves contain the same number of black nodes
+        """
+
         current = self.minimum(self.root)
         while not current.is_nil():
             if not self.check_black_colors(current):
@@ -138,17 +167,22 @@ class IntervalTree:
         return True
 
     def create_path(self, x, p):
+        """
+        Used to verify if all the paths have the same number of black nodes
+        """
         path = [self.nil]
         while x != p.p:
             path.append(x)
             x = x.p
         return path
 
-    """
-    check for a single node, all simple paths from the node to descendant leaves contain the same number of black nodes
-    """
 
     def check_black_colors(self, x):
+        """
+        Check for a single node if all simple paths from the node
+        to descendant leaves contain the same number of black nodes
+        """
+
         current = self.minimum(x)
         paths = []
         while current != self.successor(self.maximum(x)):
@@ -173,6 +207,9 @@ class IntervalTree:
         return True
 
     def check_rb_tree(self):
+        """
+        Check if the tree respect the red black tree properties
+        """
 
         if self.root.is_nil():
             return True
@@ -192,11 +229,13 @@ class IntervalTree:
         return a and b and c and d
 
     def check_interval_tree(self):
+        """
+        Check if the tree respect the interval tree properties (no overlapping intervals)
+        """
 
         if self.root.is_nil():
             return True
 
-        # check if the tree doesn't have overlapping intervals
         visited = []
         current = self.minimum(self.root)
         while not current.is_nil():
@@ -207,19 +246,13 @@ class IntervalTree:
             current = self.successor(current)
         return self.check_rb_tree()
 
-    def check_left_right(self):
-        current = self.minimum(self.root)
-        while not current.is_nil():
-            if not current.left.is_nil():
-                if current.left.interval > current.interval:
-                    return False
-            if not current.right.is_nil():
-                if current.right.interval < current.interval:
-                    return False
-            current = self.successor(current)
-        return True
-
     def left_rotate(self, x):
+        """
+        Left rotation of the tree
+        Must maintain nodes attributes such as size
+        @see Cormen, Leiserson, Rivest, Stein. Introduction to Algorithms, 3rd edition. 2009. p 313
+        """
+
         y = x.right
         x.right = y.left
         if not y.left.is_nil():
@@ -237,6 +270,12 @@ class IntervalTree:
         x.size = x.left.size + x.right.size + 1
 
     def right_rotate(self, x):
+        """
+        Right rotation of the tree
+        Must maintain nodes attributes such as size
+        symmetric to left_rotate
+        """
+
         y = x.left
         x.left = y.right
         if not y.right.is_nil():
@@ -254,6 +293,11 @@ class IntervalTree:
         x.size = x.left.size + x.right.size + 1
 
     def rb_insert_fixup(self, z):
+        """
+        Fix the red black tree properties after an insertion
+        @see Cormen, Leiserson, Rivest, Stein. Introduction to Algorithms, 3rd edition. 2009. p 316
+        """
+
         while z.p.color == True:
             if z.p == z.p.p.left:
                 y = z.p.p.right
@@ -286,6 +330,12 @@ class IntervalTree:
         self.root.color = False
 
     def insert(self, z):
+        """
+        Red Black Tree insertion
+        Must maintain nodes attributes such as size
+        @see Cormen, Leiserson, Rivest, Stein. Introduction to Algorithms, 3rd edition. 2009. p 315
+        """
+
         y = self.nil
         x = self.root
         while not x.is_nil():
@@ -309,6 +359,11 @@ class IntervalTree:
         z.size = 1
 
     def rb_transplant(self, u, v):
+        """
+        Replace the subtree rooted at node u with the subtree rooted at node v
+        @see Cormen, Leiserson, Rivest, Stein. Introduction to Algorithms, 3rd edition. 2009. p 323
+        """
+
         if u.p.is_nil():
             self.root = v
         elif u == u.p.left:
@@ -318,6 +373,11 @@ class IntervalTree:
         v.p = u.p
 
     def rb_delete_fixup(self, x):
+        """
+        Fix the red black tree properties after a deletion
+        @see Cormen, Leiserson, Rivest, Stein. Introduction to Algorithms, 3rd edition. 2009. p 326
+        """
+
         while x != self.root and x.color == False:
             if x == x.p.left:
                 w = x.p.right
@@ -364,6 +424,12 @@ class IntervalTree:
         x.color = False
 
     def delete(self, z):
+        """
+        Red Black Tree deletion
+        Must maintain nodes attributes such as size
+        @see Cormen, Leiserson, Rivest, Stein. Introduction to Algorithms, 3rd edition. 2009. p 324
+        """
+
         if z.is_nil():
             return
         y = z
@@ -399,7 +465,7 @@ class IntervalTree:
 
     def delete_using_interval(self, x, interval):
         """
-        delete first interval found in the tree
+        Delete first node found in the tree corresponding to the interval
         """
 
         while not x.is_nil():
@@ -412,7 +478,7 @@ class IntervalTree:
 
     def delete_using_value(self, value):
         """
-        delete all nodes in the tree who has the same value
+        Delete all nodes found in the tree corresponding to the value
         """
 
         current = self.minimum(self.root)
@@ -489,7 +555,7 @@ class IntervalTree:
         else:
             return False
 
-    def overlap3_helper(self, x, z):
+    def overlap_helper(self, x, z):
 
         # go in subtree x and locate all type of nodes
 
@@ -559,6 +625,11 @@ class IntervalTree:
                 self.delete(node)
 
     def insertInterval(self, z):
+        """
+        Insert a node such that his interval does not overlap with any other node in the tree
+        Some other nodes may be deleted or fused
+        """
+
         if z.interval.empty:
             return
         y = self.nil
