@@ -472,10 +472,11 @@ class IntervalTree:
 
             # fuse safe nodes and safe subtree
             for node in safesubtree:
-                current = self.minimum(node)
-                while current != self.successor(self.maximum(node)):
-                    safenode.append(current)
-                    current = self.successor(current)
+                if not node.is_nil():
+                    current = self.minimum(node) # current can be empty ?
+                    while current != self.successor(self.maximum(node)):
+                        safenode.append(current)
+                        current = self.successor(current)
 
             # find other safe nodes in the tree
             current = x
@@ -547,6 +548,7 @@ class IntervalTree:
                     x.value = z.value
                 return
             elif x.interval in z.interval:
+                #print(x.interval," in ",z.interval)
                 # case 4 : x interval is included in z interval
                 x.interval = z.interval
                 x.value = z.value
@@ -554,6 +556,7 @@ class IntervalTree:
                 return
             elif z.interval <= x.interval:
                 if x.value == z.value:
+                    #print(z.interval," <= ",x.interval," and have the same value")
                     # case 5 : z interval <= x interval and have the same value
                     # extend x value
                     x.interval = x.interval | z.interval
@@ -567,6 +570,7 @@ class IntervalTree:
             else:
                 # symmetric case of case 5 and 6
                 if x.value == z.value:
+                    #print(z.interval," >= ",x.interval," and have the same value")
                     x.interval = x.interval | z.interval
                     self.overlap_helper(x, z)
                     return
@@ -588,8 +592,9 @@ class IntervalTree:
         z.color = True
 
         # update size
-        while not z.p.is_nil():
-            z = z.p
-            z.size = z.size + 1
+        f = z.p
+        while not f.is_nil():
+            f.size = f.size + 1
+            f = f.p
 
         self.rb_insert_fixup(z)

@@ -177,8 +177,6 @@ class TestIntervalTree:
         tree = self.create_simple_tree()
 
         tree.delete(tree.root.right.left)
-        print()
-        print(tree)
         assert self.check_interval_tree(tree) == True
         assert tree.root.right.left == P.Node(P.singleton(24), 'h')
 
@@ -187,8 +185,6 @@ class TestIntervalTree:
         tree.insert(P.Node(P.singleton(12), 'j'))
 
         tree.delete(tree.root.left.right)
-        print()
-        print(tree)
         assert self.check_interval_tree(tree) == True
         assert tree.root.left.right == P.Node(P.singleton(12), 'j')
 
@@ -196,8 +192,6 @@ class TestIntervalTree:
         tree = self.create_simple_tree()
 
         tree.delete(tree.root)
-        print()
-        print(tree)
         assert self.check_interval_tree(tree) == True
         assert tree.root == P.Node(P.openclosed(21, 23), 'f')
 
