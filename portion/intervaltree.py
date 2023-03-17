@@ -3,11 +3,10 @@ class Node:
     represent a node in the interval tree
     """
 
-    def __init__(self, interval, value, color=True):
+    def __init__(self, interval, value):
         """
         :param interval: an atomic interval.
         :param value: a value mapped to the interval.
-        :param color: the color in the tree (red or black)
 
         """
 
@@ -29,11 +28,11 @@ class Node:
         # nil nodes have self.size = 0
         # leaf nodes have self.size = 1
         # other nodes have size = self.left.size + self.right.size + 1
-        self.size = 0
+        self.size = 1
 
         # False = black
         # True = red
-        self.color = color
+        self.color = True
 
     def is_nil(self):
         """
@@ -69,7 +68,9 @@ class IntervalTree:
         """
 
         # define NIL node
-        self.nil = Node("NIL", "NIL", False)
+        self.nil = Node("NIL", "NIL")
+        self.nil.color = False
+        self.nil.size = 0
 
         # define empty root
         self.root = self.nil
@@ -122,129 +123,6 @@ class IntervalTree:
             x = y
             y = y.p
         return y
-
-    def check_nil_color(self):
-        """
-        Check if the tree is well-structured with respect to the nil node (must always be black)
-        """
-
-        current = self.minimum(self.root)
-        while not current.is_nil():
-            if current.left.is_nil():
-                if current.left.color == True:
-                    return False
-            if current.right.is_nil():
-                if current.right.color == True:
-                    return False
-            current = self.successor(current)
-        return True
-
-    def check_red_colors(self):
-        """
-        Check if the tree is well-structured with respect to the red nodes
-        If a node is red, then both its children are black
-        """
-
-        current = self.minimum(self.root)
-        while not current.is_nil():
-            if current.color == True:
-                if current.left.color == True or current.right.color == True:
-                    return False
-            current = self.successor(current)
-        return True
-
-    def check_each_nodes_black_colors(self):
-        """
-        Check if the tree is well-structured with respect to the black nodes
-        For each node, all simple paths from the node to descendant leaves contain the same number of black nodes
-        """
-
-        current = self.minimum(self.root)
-        while not current.is_nil():
-            if not self.check_black_colors(current):
-                return False
-            current = self.successor(current)
-        return True
-
-    def create_path(self, x, p):
-        """
-        Used to verify if all the paths have the same number of black nodes
-        """
-        path = [self.nil]
-        while x != p.p:
-            path.append(x)
-            x = x.p
-        return path
-
-
-    def check_black_colors(self, x):
-        """
-        Check for a single node if all simple paths from the node
-        to descendant leaves contain the same number of black nodes
-        """
-
-        current = self.minimum(x)
-        paths = []
-        while current != self.successor(self.maximum(x)):
-            if current.left.is_nil():
-                path = self.create_path(current, x)
-                paths.append(path)
-            if current.right.is_nil():
-                path = self.create_path(current, x)
-                paths.append(path)
-            current = self.successor(current)
-        num_black1 = 0
-        for node in paths[0]:
-            if node.color == False:
-                num_black1 += 1
-        for path in paths:
-            num_black2 = 0
-            for node in path:
-                if node.color == False:
-                    num_black2 += 1
-            if num_black1 != num_black2:
-                return False
-        return True
-
-    def check_rb_tree(self):
-        """
-        Check if the tree respect the red black tree properties
-        """
-
-        if self.root.is_nil():
-            return True
-
-        # The root is black.
-        a = self.root.color == False
-
-        # Every leaf (NIL) is black.
-        b = self.check_nil_color()
-
-        # If a node is red, then both its children are black.
-        c = self.check_red_colors()
-
-        # For each node, all simple paths from the node to descendant leaves contain the same number of black nodes.
-        d = self.check_each_nodes_black_colors()
-
-        return a and b and c and d
-
-    def check_interval_tree(self):
-        """
-        Check if the tree respect the interval tree properties (no overlapping intervals)
-        """
-
-        if self.root.is_nil():
-            return True
-
-        visited = []
-        current = self.minimum(self.root)
-        while not current.is_nil():
-            for v in visited:
-                if v.interval.overlaps(current.interval):
-                    return False
-            visited.append(current)
-            current = self.successor(current)
-        return self.check_rb_tree()
 
     def left_rotate(self, x):
         """
@@ -356,7 +234,6 @@ class IntervalTree:
         z.right = self.nil
         z.color = True
         self.rb_insert_fixup(z)
-        z.size = 1
 
     def rb_transplant(self, u, v):
         """
@@ -430,18 +307,36 @@ class IntervalTree:
         @see Cormen, Leiserson, Rivest, Stein. Introduction to Algorithms, 3rd edition. 2009. p 324
         """
 
-        if z.is_nil():
-            return
         y = z
         y_original_color = y.color
         if z.left.is_nil():
             x = z.right
             self.rb_transplant(z, z.right)
+
+            # update size from x to root
+            f = x.p
+            while not f.is_nil():
+                f.size = f.size - 1
+                f = f.p
         elif z.right.is_nil():
             x = z.left
             self.rb_transplant(z, z.left)
+
+            # update size from x to root
+            f = x.p
+            while not f.is_nil():
+                f.size = f.size - 1
+                f = f.p
         else:
             y = self.minimum(z.right)
+
+            # update size from y to root
+            u = y
+            u.size = z.size
+            while not u.is_nil():
+                u.size = u.size - 1
+                u = u.p
+
             y_original_color = y.color
             x = y.right
             if y.p == z:
@@ -454,14 +349,9 @@ class IntervalTree:
             y.left = z.left
             y.left.p = y
             y.color = z.color
+
         if y_original_color == False:
             self.rb_delete_fixup(x)
-
-        # update size
-        y.size = z.size
-        while not y.is_nil():
-            y.size = y.size - 1
-            y = y.p
 
     def delete_using_interval(self, x, interval):
         """
@@ -696,9 +586,10 @@ class IntervalTree:
         z.left = self.nil
         z.right = self.nil
         z.color = True
-        self.rb_insert_fixup(z)
+
         # update size
-        z.size = 1
         while not z.p.is_nil():
             z = z.p
             z.size = z.size + 1
+
+        self.rb_insert_fixup(z)
