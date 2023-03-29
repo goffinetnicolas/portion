@@ -232,3 +232,12 @@ class TestIntervalTree:
         assert tree.root.right.right == P.Node(P.closed(29, 32), 'g')
         assert tree.root.right.right.right == P.Node(P.singleton(40), 'i')
         assert self.check_interval_tree(tree) == True
+
+    def test_left_rotate(self):
+        tree = P.IntervalTree()
+        tree.insertNode(P.closed(16, 21), 'a')
+        tree.insertNode(P.closed(9, 10), 'b')
+        tree.insertNode(P.closed(4, 5), 'd')
+        tree.insertNode(P.singleton(15), 'e')
+        tree.insertNode(P.openclosed(21, 23), 'f')
+        print(tree)

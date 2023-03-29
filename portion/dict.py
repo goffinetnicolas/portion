@@ -1,5 +1,7 @@
 from sortedcontainers import SortedDict
 from collections.abc import MutableMapping, Mapping
+
+from .intervaltree import IntervalTree
 from .const import Bound
 from .interval import Interval
 
@@ -28,6 +30,7 @@ class IntervalDict(MutableMapping):
 
     __slots__ = ("_storage",)
 
+
     # Class to use when creating Interval instances
     _klass = Interval
 
@@ -42,7 +45,7 @@ class IntervalDict(MutableMapping):
 
         :param mapping_or_iterable: optional mapping or iterable.
         """
-        self._storage = SortedDict(_sort)  # Mapping from intervals to values
+        self._storage = IntervalTree()  # Mapping from intervals to values
 
         if mapping_or_iterable is not None:
             self.update(mapping_or_iterable)
@@ -297,32 +300,34 @@ class IntervalDict(MutableMapping):
         if interval.empty:
             return
 
-        removed_keys = []
-        added_items = []
+        self._storage.insertNode(interval, value)
 
-        found = False
-        for i, v in self._storage.items():
-            if value == v:
-                found = True
-                # Extend existing key
-                removed_keys.append(i)
-                added_items.append((i | interval, v))
-            elif i.overlaps(interval):
-                # Reduce existing key
-                remaining = i - interval
-                removed_keys.append(i)
-                if not remaining.empty:
-                    added_items.append((remaining, v))
-
-        if not found:
-            added_items.append((interval, value))
-
-        # Update storage accordingly
-        for key in removed_keys:
-            self._storage.pop(key)
-
-        for key, value in added_items:
-            self._storage[key] = value
+        # removed_keys = []
+        # added_items = []
+        #
+        # found = False
+        # for i, v in self._storage.items():
+        #     if value == v:
+        #         found = True
+        #         # Extend existing key
+        #         removed_keys.append(i)
+        #         added_items.append((i | interval, v))
+        #     elif i.overlaps(interval):
+        #         # Reduce existing key
+        #         remaining = i - interval
+        #         removed_keys.append(i)
+        #         if not remaining.empty:
+        #             added_items.append((remaining, v))
+        #
+        # if not found:
+        #     added_items.append((interval, value))
+        #
+        # # Update storage accordingly
+        # for key in removed_keys:
+        #     self._storage.pop(key)
+        #
+        # for key, value in added_items:
+        #     self._storage[key] = value
 
     def __delitem__(self, key):
         if isinstance(key, Interval):
