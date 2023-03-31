@@ -335,8 +335,12 @@ def timer():
 
 
 if __name__ == "__main__":
-    timer()
+    #timer()
     # x = P.intervaltree.Node(P.closed(42, 48), "a")
     # r = P.intervaltree.Node(P.closed(40, 50), "b")
     # print(x.interval <= r.interval)
     # print(x.interval in r.interval
+    tree = create_simple_tree()
+    print(tree)
+    tree.delete_using_interval(P.singleton(24))
+    print(tree)

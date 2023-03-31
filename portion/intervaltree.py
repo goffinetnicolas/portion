@@ -1,3 +1,6 @@
+from .func import empty
+
+
 class Node:
     """
     represent a node in the interval tree
@@ -20,10 +23,8 @@ class Node:
         # right child
         self.right = None
 
-        # left enclosure (range of all intervals in left subtree of the node)
-        self.left_enclosure = interval
-        # right enclosure (range of all intervals in right subtree of the node)
-        self.right_enclosure = interval
+        # enclosure (range of all intervals in the subtree)
+        self.enclosure = interval
 
         # nil nodes have self.size = 0
         # leaf nodes have self.size = 1
@@ -48,9 +49,9 @@ class Node:
 
     def __repr__(self):
         if self.color is True:
-            return f'interval: {self.interval}, value: {self.value}, color: red, size : {self.size}'
+            return f'interval: {self.interval}, value: {self.value}, color: red, size : {self.size}, enclosure: {self.enclosure}'
         if self.color is False:
-            return f'interval: {self.interval}, value: {self.value}, color: black, size : {self.size}'
+            return f'interval: {self.interval}, value: {self.value}, color: black, size : {self.size}, enclosure: {self.enclosure}'
 
 
 class IntervalTree:
@@ -71,6 +72,7 @@ class IntervalTree:
         self.nil = Node("NIL", "NIL")
         self.nil.color = False
         self.nil.size = 0
+        self.nil.enclosure = empty()
 
         # define empty root
         self.root = self.nil
@@ -150,8 +152,8 @@ class IntervalTree:
         x.size = x.left.size + x.right.size + 1
 
         # update enclosure
-        x.right_enclosure = y.left_enclosure
-        y.left_enclosure = y.left_enclosure.union(x.left_enclosure).enclosure()
+        y.enclosure = x.enclosure
+        x.enclosure = (x.left.enclosure | x.right.enclosure | x.interval).enclosure
 
     def right_rotate(self, x):
         """
@@ -179,8 +181,8 @@ class IntervalTree:
         x.size = x.left.size + x.right.size + 1
 
         # update enclosure
-        x.left_enclosure = y.right_enclosure
-        y.right_enclosure = y.right_enclosure.union(x.right_enclosure).enclosure()
+        y.enclosure = x.enclosure
+        x.enclosure = (x.left.enclosure | x.right.enclosure | x.interval).enclosure
 
     def rb_insert_fixup(self, z):
         """
@@ -229,7 +231,13 @@ class IntervalTree:
         y = self.nil
         x = self.root
         while not x.is_nil():
+            # update size
             x.size = x.size + 1
+
+            # update enclosure
+            if x.enclosure < z.interval or x.enclosure > z.interval:
+                x.enclosure = (x.enclosure | z.interval).enclosure
+
             y = x
             if z.interval < x.interval:
                 x = x.left
@@ -325,28 +333,51 @@ class IntervalTree:
             x = z.right
             self.rb_transplant(z, z.right)
 
-            # update size from x to root
+            # update node attributes from x to root
             f = x.p
             while not f.is_nil():
+
+                # update size
                 f.size = f.size - 1
+
+                # update enclosure
+                if f.enclosure.lower == z.interval.lower or f.enclosure.upper == z.interval.upper:
+                    f.enclosure = (f.interval | f.left.enclosure | f.right.enclosure).enclosure
+
                 f = f.p
+
         elif z.right.is_nil():
             x = z.left
             self.rb_transplant(z, z.left)
 
-            # update size from x to root
+            # update node attributes from x to root
             f = x.p
             while not f.is_nil():
+
+                # update size
                 f.size = f.size - 1
+
+                # update enclosure
+                if f.enclosure.lower == z.interval.lower or f.enclosure.upper == z.interval.upper:
+                    f.enclosure = (f.interval | f.left.enclosure | f.right.enclosure).enclosure
+
                 f = f.p
         else:
             y = self.minimum(z.right)
 
-            # update size from y to root
+            # update node attributes from y to root
             u = y
             u.size = z.size
+            u.enclosure = z.enclosure
             while not u.is_nil():
+
+                # update size
                 u.size = u.size - 1
+
+                # update enclosure
+                if u.enclosure.lower == z.interval.lower or u.enclosure.upper == z.interval.upper:
+                    u.enclosure = (u.interval | u.left.enclosure | u.right.enclosure).enclosure
+
                 u = u.p
 
             y_original_color = y.color
@@ -365,18 +396,21 @@ class IntervalTree:
         if y_original_color == False:
             self.rb_delete_fixup(x)
 
-    def delete_using_interval(self, x, interval):
+    def delete_using_interval(self, interval):
         """
         Delete first node found in the tree corresponding to the interval
         """
 
+        x = self.root
         while not x.is_nil():
             if interval == x.interval:
                 self.delete(x)
+                return
             if x.interval < interval:
                 x = x.right
             else:
                 x = x.left
+        raise ValueError("Interval not found")
 
     def delete_using_value(self, value):
         """
@@ -384,10 +418,14 @@ class IntervalTree:
         """
 
         current = self.minimum(self.root)
+        found = False
         while not current.is_nil():
             if current.value == value:
                 self.delete(current)
+                found = True
             current = self.successor(current)
+        if not found:
+            raise ValueError("Value not found")
 
     def check_overlap(self, x, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node):
         """
@@ -502,7 +540,7 @@ class IntervalTree:
             # fuse safe nodes and safe subtree
             for node in safesubtree:
                 if not node.is_nil():
-                    current = self.minimum(node) # current can be empty ?
+                    current = self.minimum(node)  # current can be empty ?
                     while current != self.successor(self.maximum(node)):
                         safenode.append(current)
                         current = self.successor(current)
@@ -577,7 +615,7 @@ class IntervalTree:
                     x.value = z.value
                 return
             elif x.interval in z.interval:
-                #print(x.interval," in ",z.interval)
+                # print(x.interval," in ",z.interval)
                 # case 4 : x interval is included in z interval
                 x.interval = z.interval
                 x.value = z.value
@@ -585,7 +623,7 @@ class IntervalTree:
                 return
             elif z.interval <= x.interval:
                 if x.value == z.value:
-                    #print(z.interval," <= ",x.interval," and have the same value")
+                    # print(z.interval," <= ",x.interval," and have the same value")
                     # case 5 : z interval <= x interval and have the same value
                     # extend x value
                     x.interval = x.interval | z.interval
@@ -599,7 +637,7 @@ class IntervalTree:
             else:
                 # symmetric case of case 5 and 6
                 if x.value == z.value:
-                    #print(z.interval," >= ",x.interval," and have the same value")
+                    # print(z.interval," >= ",x.interval," and have the same value")
                     x.interval = x.interval | z.interval
                     self.overlap_helper(x, z)
                     return
@@ -630,4 +668,3 @@ class IntervalTree:
 
     def insertNode(self, interval, value):
         self.insert_interval(Node(interval, value))
-
