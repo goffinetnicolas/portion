@@ -442,15 +442,17 @@ class IntervalTree:
         if x.is_nil():
             return
         if x.interval < z.interval:
+            safe_node.append(x)
             if not x.left.is_nil():
                 safe_subtree.append(x.left)
             # TODO check right enclosure
-            return self.check_overlap(x.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
+            self.check_overlap(x.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
         elif x.interval > z.interval:
+            safe_node.append(x)
             if not x.right.is_nil():
                 safe_subtree.append(x.right)
             # TODO check left enclosure
-            return self.check_overlap(x.left, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
+            self.check_overlap(x.left, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
         elif x.interval in z.interval:
             unsafe_node.append(x)
             # TODO check right enclosure
@@ -526,6 +528,12 @@ class IntervalTree:
         self.check_overlap(x.left, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
         # TODO check right enclosure
         self.check_overlap(x.right, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
+        # print()
+        # print("safe subtree: ", safesubtree)
+        # print("safe node: ", safenode)
+        # print("modify: ", modify)
+        # print("unsafe subtree: ", unsafesubtree)
+        # print("unsafe node: ", unsafenode)
         for node in modify:
             x.interval = x.interval | node.interval
         safe = len(safenode)
@@ -540,7 +548,7 @@ class IntervalTree:
             # fuse safe nodes and safe subtree
             for node in safesubtree:
                 if not node.is_nil():
-                    current = self.minimum(node)  # current can be empty ?
+                    current = self.minimum(node)
                     while current != self.successor(self.maximum(node)):
                         safenode.append(current)
                         current = self.successor(current)
@@ -558,6 +566,7 @@ class IntervalTree:
                         safenode.append(current2)
                         current2 = self.successor(current2)
                 else:
+                    # current.p.right == current
                     current = current.p
                     safenode.append(current)
                     # add all nodes in the left subtree of current node
@@ -658,10 +667,17 @@ class IntervalTree:
         z.right = self.nil
         z.color = True
 
-        # update size
+        # update nodes attributes
         f = z.p
         while not f.is_nil():
+
+            # update size
             f.size = f.size + 1
+
+            # update enclosure
+            if f.enclosure < z.interval or f.enclosure > z.interval:
+                f.enclosure = (f.enclosure | z.interval).enclosure
+
             f = f.p
 
         self.rb_insert_fixup(z)

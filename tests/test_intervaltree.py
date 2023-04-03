@@ -150,6 +150,17 @@ class TestIntervalTree:
 
         return tree
 
+    def create_simple_tree2(self):
+        tree = self.create_simple_tree()
+        tree.insert_interval(P.Node(P.closed(0, 1), 'j'))
+        tree.insert_interval(P.Node(P.closed(2, 3), 'k'))
+        tree.insert_interval(P.Node(P.singleton(7), 'l'))
+        tree.insert_interval(P.Node(P.closed(12,13), 'm'))
+        tree.insert_interval(P.Node(P.closed(25,26), 'n'))
+        tree.insert_interval(P.Node(P.closed(42,43), 'o'))
+        tree.insert_interval(P.Node(P.closed(44,45), 'p'))
+        return tree
+
     def test_insert(self):
         tree = self.create_simple_tree()
 
@@ -215,7 +226,7 @@ class TestIntervalTree:
         assert tree.root.right.left.left == P.Node(P.openclosed(20, 21), 'a')
         assert self.check_interval_tree(tree) == True
 
-    def test_insert_interval_case4(self):
+    def test_insert_interval_case4_1(self):
         # probably more case to test for case 4
         tree = self.create_simple_tree()
         tree.insert_interval(P.Node(P.closed(22, 30), 'g'))
@@ -223,6 +234,35 @@ class TestIntervalTree:
         assert tree.root.right.left == P.Node(P.open(21, 22), 'f')
         assert tree.root.right.left.right == tree.nil
         assert tree.root.right.right == P.Node(P.singleton(40), 'i')
+        assert self.check_interval_tree(tree) == True
+
+    def test_insert_interval_case4_2(self):
+        tree = self.create_simple_tree()
+        tree.insert_interval(P.Node(P.closed(16, 44), 'j'))
+        assert tree.root == P.Node(P.singleton(15), 'e')
+        assert tree.root.left == P.Node(P.closed(9, 10), 'b')
+        assert tree.root.left.left == P.Node(P.closed(4, 5), 'd')
+        assert tree.root.right == P.Node(P.closed(16, 44), 'j')
+        assert self.check_interval_tree(tree) == True
+
+    def test_insert_interval_case4_3(self):
+        tree = self.create_simple_tree2()
+        tree.insert_interval(P.Node(P.closed(7, 30), 'g'))
+        assert tree.root == P.Node(P.closed(4,5), 'd')
+        assert tree.root.left == P.Node(P.closed(2,3), 'k')
+        assert tree.root.left.left == P.Node(P.closed(0,1), 'j')
+        assert tree.root.right == P.Node(P.singleton(40), 'i')
+        assert tree.root.right.left == P.Node(P.closedopen(7, 32), 'g')
+        assert tree.root.right.right == P.Node(P.closed(42, 43), 'o')
+        assert tree.root.right.right.right == P.Node(P.closed(44, 45), 'p')
+        assert self.check_interval_tree(tree) == True
+
+    def test_insert_interval_case4_4(self):
+        tree = self.create_simple_tree2()
+        tree.insert_interval(P.Node(P.closed(15, 24), 'z'))
+        assert tree.root == P.Node(P.closed(15, 24), 'z')
+        assert tree.root.left == P.Node(P.closed(9, 10), 'b')
+        assert tree.root.right == P.Node(P.closed(28,29), 'c')
         assert self.check_interval_tree(tree) == True
 
     def test_insert_interval_case5and6(self):
@@ -233,11 +273,3 @@ class TestIntervalTree:
         assert tree.root.right.right.right == P.Node(P.singleton(40), 'i')
         assert self.check_interval_tree(tree) == True
 
-    def test_left_rotate(self):
-        tree = P.IntervalTree()
-        tree.insertNode(P.closed(16, 21), 'a')
-        tree.insertNode(P.closed(9, 10), 'b')
-        tree.insertNode(P.closed(4, 5), 'd')
-        tree.insertNode(P.singleton(15), 'e')
-        tree.insertNode(P.openclosed(21, 23), 'f')
-        print(tree)
