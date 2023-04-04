@@ -11,11 +11,11 @@ def check_nil_color(tree):
     """
 
     current = tree.minimum(tree.root)
-    while not current.is_nil():
-        if current.left.is_nil():
+    while not current.is_nil:
+        if current.left.is_nil:
             if current.left.color == True:
                 return False
-        if current.right.is_nil():
+        if current.right.is_nil:
             if current.right.color == True:
                 return False
         current = tree.successor(current)
@@ -29,7 +29,7 @@ def check_red_colors(tree):
     """
 
     current = tree.minimum(tree.root)
-    while not current.is_nil():
+    while not current.is_nil:
         if current.color == True:
             if current.left.color == True or current.right.color == True:
                 return False
@@ -44,7 +44,7 @@ def check_each_nodes_black_colors(tree):
     """
 
     current = tree.minimum(tree.root)
-    while not current.is_nil():
+    while not current.is_nil:
         if not check_black_colors(current, tree):
             return False
         current = tree.successor(current)
@@ -71,10 +71,10 @@ def check_black_colors(x, tree):
     current = tree.minimum(x)
     paths = []
     while current != tree.successor(tree.maximum(x)):
-        if current.left.is_nil():
+        if current.left.is_nil:
             path = create_path(current, x, tree)
             paths.append(path)
-        if current.right.is_nil():
+        if current.right.is_nil:
             path = create_path(current, x, tree)
             paths.append(path)
         current = tree.successor(current)
@@ -97,7 +97,7 @@ def check_rb_tree(tree):
     Check if the tree respect the red black tree properties
     """
 
-    if tree.root.is_nil():
+    if tree.root.is_nil:
         return True
 
     # The root is black.
@@ -120,12 +120,12 @@ def check_interval_tree(tree):
     Check if the tree respect the interval tree properties (no overlapping intervals)
     """
 
-    if tree.root.is_nil():
+    if tree.root.is_nil:
         return True
 
     visited = []
     current = tree.minimum(tree.root)
-    while not current.is_nil():
+    while not current.is_nil:
         for v in visited:
             if v.interval.overlaps(current.interval):
                 return False
@@ -193,7 +193,7 @@ def test_delete_correct():
         tree.delete(n)
         print(tree)
         nodes.remove(n)
-        if not tree.root.is_nil():
+        if not tree.root.is_nil:
             if check_size(tree) == False:
                 print("size not correct")
                 return False
@@ -226,7 +226,7 @@ def test_interval_correct():
         node = P.Node(s, r.choice(values))
         print(i, " inserting : ", node)
         tree.insert_interval(node)
-        if not tree.root.is_nil():
+        if not tree.root.is_nil:
             if check_size(tree) == False:
                 print("size not correct")
                 return False
@@ -234,7 +234,7 @@ def test_interval_correct():
                 print("interval tree not correct")
                 return False
         a = r.randint(0, 20)
-        if not tree.root.is_nil():
+        if not tree.root.is_nil:
             if a == 0:
                 u = r.randint(0, tree.root.size - 1)
                 n = tree.minimum(tree.root)
@@ -243,7 +243,7 @@ def test_interval_correct():
                     n = tree.successor(n)
                 print("deleting : ", n)
                 tree.delete(n)
-                if not tree.root.is_nil():
+                if not tree.root.is_nil:
                     if check_size(tree) == False:
                         print("size not correct")
                         return False
@@ -276,7 +276,7 @@ def test_delete_interval_correct():
 
 def check_size(tree):
     current = tree.minimum(tree.root)
-    while not current.is_nil():
+    while not current.is_nil:
         if current.size != current.left.size + current.right.size + 1:
             return False
         current = tree.successor(current)
