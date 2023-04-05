@@ -45,6 +45,14 @@ class Node:
 
         return self.interval == empty()
 
+    @property
+    def subtree_enclosure(self):
+        """
+        compute the enclosure of the subtree
+        """
+
+        return (self.minimum.interval | self.maximum.interval).enclosure
+
     def __eq__(self, other):
         if isinstance(other, Node):
             return self.interval == other.interval and self.value == other.value
@@ -138,7 +146,6 @@ class IntervalTree:
         @see Cormen, Leiserson, Rivest, Stein. Introduction to Algorithms, 3rd edition. 2009. p 313
         """
 
-        print("left rotate !!!!!!")
         y = x.right
         x.right = y.left
         if not y.left.is_nil:
@@ -161,11 +168,15 @@ class IntervalTree:
         y.enclosure = x.enclosure
         x.enclosure = (x.left.enclosure | x.right.enclosure | x.interval).enclosure
 
+        y_min = y.minimum
+
         y.minimum = x.minimum
+        if x.left.is_nil:
+            x.minimum = x
+        else:
+            x.maximum = y_min
         if x.right.is_nil:
             x.maximum = x
-        else:
-            x.maximum = y.maximum
 
     def right_rotate(self, x):
         """
@@ -173,7 +184,6 @@ class IntervalTree:
         Must maintain nodes attributes such as size
         symmetric to left_rotate
         """
-        print("right rotate !!!!!!")
 
         y = x.left
         x.left = y.right
@@ -197,11 +207,17 @@ class IntervalTree:
         y.enclosure = x.enclosure
         x.enclosure = (x.left.enclosure | x.right.enclosure | x.interval).enclosure
 
+        y_max = y.maximum
+
         y.maximum = x.maximum
         if x.left.is_nil:
             x.minimum = x
         else:
-            x.minimum = y.minimum
+            x.minimum = y_max
+        if x.right.is_nil:
+            x.maximum = x
+
+
 
     def rb_insert_fixup(self, z):
         """
@@ -417,8 +433,7 @@ class IntervalTree:
             u = y
             u.size = z.size
             u.enclosure = z.enclosure
-            u.minimum = z.minimum
-            u.maximum = z.maximum
+            # TODO problem here with u.maximum and u.minimum
             while not u.is_nil:
 
                 # update size
@@ -428,19 +443,19 @@ class IntervalTree:
                 if u.enclosure.lower == z.interval.lower or u.enclosure.upper == z.interval.upper:
                     u.enclosure = (u.interval | u.left.enclosure | u.right.enclosure).enclosure
 
-                if z == u.minimum:
-                    if u.left.is_nil:
-                        u.minimum = u
+                if y == u.left:
+                    if y.maximum != y:
+                        u.minimum = y.maximum
                     else:
+                        u.minimum = u
+                else:
+                    if u.minimum == y:
                         u.minimum = u.left.minimum
 
-                if z == u.maximum:
-                    if u.right.is_nil:
-                        u.maximum = u
-                    else:
-                        u.maximum = u.right.maximum
-
                 u = u.p
+
+            y.maximum = z.maximum
+            y.minimum = z.minimum
 
             y_original_color = y.color
             x = y.right
@@ -454,6 +469,8 @@ class IntervalTree:
             y.left = z.left
             y.left.p = y
             y.color = z.color
+            print("no fixup:")
+            print(self)
 
         if y_original_color == False:
             self.rb_delete_fixup(x)
@@ -489,7 +506,7 @@ class IntervalTree:
         if not found:
             raise ValueError("Value not found")
 
-    def check_overlap(self, x, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node):
+    def locate_nodes(self, x, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node):
         """
         Recursive function to check if the descendants of z are overlapping with z
         @param x: current node that we visit
@@ -507,20 +524,20 @@ class IntervalTree:
             safe_node.append(x)
             if not x.left.is_nil:
                 safe_subtree.append(x.left)
-            # TODO check right enclosure
-            self.check_overlap(x.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
+            if self.check_right_enclosure(x, z, safe_subtree, unsafe_subtree) == False:
+                self.locate_nodes(x.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
         elif x.interval > z.interval:
             safe_node.append(x)
             if not x.right.is_nil:
                 safe_subtree.append(x.right)
-            # TODO check left enclosure
-            self.check_overlap(x.left, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
+            if self.check_left_enclosure(x, z, safe_subtree, unsafe_subtree) == False:
+                self.locate_nodes(x.left, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
         elif x.interval in z.interval:
             unsafe_node.append(x)
-            # TODO check right enclosure
-            self.check_overlap(x.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
-            # TODO check left enclosure
-            self.check_overlap(x.left, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
+            if self.check_right_enclosure(x, z, safe_subtree, unsafe_subtree) == False:
+                self.locate_nodes(x.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
+            if self.check_left_enclosure(x, z, safe_subtree, unsafe_subtree) == False:
+                self.locate_nodes(x.left, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
             return
         elif x.interval <= z.interval:
             if x.value == z.value:
@@ -558,25 +575,31 @@ class IntervalTree:
                     safe_subtree.append(x.right)
                 return
 
-    def check_left_enclosure(self, x, unsafesubtree):
-        if x.left_enclosure < x.interval:
+    def check_left_enclosure(self, x, z, safe_subtree, unsafe_subtree):
+        if x.left.enclosure < z.interval:
+            if not x.left.is_nil:
+                safe_subtree.append(x.left)
             return True
-        elif x.left_enclosure in x.interval:
-            unsafesubtree.append(x.left)
-            return True
-        else:
-            return False
-
-    def check_right_enclosure(self, x, unsafesubtree):
-        if x.right_enclosure > x.interval:
-            return True
-        elif x.right_enclosure in x.interval:
-            unsafesubtree.append(x.right)
+        elif x.left.enclosure in z.interval:
+            if not x.left.is_nil:
+                unsafe_subtree.append(x.left)
             return True
         else:
             return False
 
-    def overlap_helper(self, x, z):
+    def check_right_enclosure(self, x, z, safe_subtree, unsafe_subtree):
+        if x.right.enclosure > z.interval:
+            if not x.right.is_nil:
+                safe_subtree.append(x.right)
+            return True
+        elif x.right.enclosure in z.interval:
+            if not x.right.is_nil:
+                unsafe_subtree.append(x.right)
+            return True
+        else:
+            return False
+
+    def check_overlaps(self, x, z):
 
         # go in subtree x and locate all type of nodes
 
@@ -587,15 +610,18 @@ class IntervalTree:
         unsafenode = []
 
         # TODO check left enclosure
-        self.check_overlap(x.left, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
+        if self.check_left_enclosure(x, z, safesubtree, unsafesubtree) == False:
+            self.locate_nodes(x.left, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
         # TODO check right enclosure
-        self.check_overlap(x.right, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
-        # print()
-        # print("safe subtree: ", safesubtree)
-        # print("safe node: ", safenode)
-        # print("modify: ", modify)
-        # print("unsafe subtree: ", unsafesubtree)
-        # print("unsafe node: ", unsafenode)
+        if self.check_right_enclosure(x, z, safesubtree, unsafesubtree) == False:
+            self.locate_nodes(x.right, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
+        print()
+        print("safe subtree: ", safesubtree)
+        print("safe node: ", safenode)
+        print("modify: ", modify)
+        print("unsafe subtree: ", unsafesubtree)
+        print("unsafe node: ", unsafenode)
+        print()
         for node in modify:
             x.interval = x.interval | node.interval
         safe = len(safenode)
@@ -604,6 +630,9 @@ class IntervalTree:
         unsafe = len(unsafenode)
         for node in unsafesubtree:
             unsafe = unsafe + node.size
+        print()
+        print("safe: ", safe)
+        print("unsafe: ", unsafe)
         if unsafe >= self.root.size / 2:
             # too many nodes to delete
 
@@ -621,28 +650,31 @@ class IntervalTree:
                 if current.p.left == current:
                     current = current.p
                     safenode.append(current)
+                    print("external node: ", current)
                     # add all nodes in the right subtree of current node
                     left_sub = current.right
                     current2 = self.minimum(left_sub)
                     while current2 != self.successor(self.maximum(left_sub)):
                         safenode.append(current2)
+                        print("external node: ", current2)
                         current2 = self.successor(current2)
                 else:
                     # current.p.right == current
                     current = current.p
                     safenode.append(current)
+                    print("external node: ", current)
                     # add all nodes in the left subtree of current node
                     left_sub = current.left
                     current2 = self.minimum(left_sub)
                     while current2 != self.successor(self.maximum(left_sub)):
                         safenode.append(current2)
+                        print("external node: ", current2)
                         current2 = self.successor(current2)
 
             # create new tree and add all safe nodes
             self.__init__()
             for node in safenode:
                 self.insert(Node(node.interval, node.value))
-                print(self)
         else:
             # fuse unsafe nodes and unsafe subtrees
             for node in unsafesubtree:
@@ -691,7 +723,7 @@ class IntervalTree:
                 # case 4 : x interval is included in z interval
                 x.interval = z.interval
                 x.value = z.value
-                self.overlap_helper(x, z)
+                self.check_overlaps(x, z)
                 return
             elif z.interval <= x.interval:
                 if x.value == z.value:
@@ -699,7 +731,7 @@ class IntervalTree:
                     # case 5 : z interval <= x interval and have the same value
                     # extend x value
                     x.interval = x.interval | z.interval
-                    self.overlap_helper(x, z)
+                    self.check_overlaps(x, z)
                     return
                 else:
                     # cut left x value
@@ -711,7 +743,7 @@ class IntervalTree:
                 if x.value == z.value:
                     # print(z.interval," >= ",x.interval," and have the same value")
                     x.interval = x.interval | z.interval
-                    self.overlap_helper(x, z)
+                    self.check_overlaps(x, z)
                     return
                 else:
                     # cut right x value

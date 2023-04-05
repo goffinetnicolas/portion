@@ -187,11 +187,7 @@ class TestIntervalTree:
         assert self.check_interval_tree(tree) == True
         assert tree.root.right.right.right == P.Node(P.singleton(40), 'i')
         assert self.check_interval_tree(tree) == True
-        print()
-        print(tree)
-        tree.right_rotate(tree.root.left)
-        print()
-        print(tree)
+
 
     def test_delete_case1(self):
         tree = self.create_simple_tree()
@@ -210,18 +206,9 @@ class TestIntervalTree:
 
     def test_delete_case3(self):
         tree = self.create_simple_tree()
-
         tree.delete(tree.root)
-        self.check_interval_tree(tree)
-        print(tree)
-        #assert self.check_interval_tree(tree) == True
-        assert tree.root == P.Node(P.openclosed(21, 23), 'f')
-
-    def test_insert_interval_case1(self):
-        tree = self.create_simple_tree()
-        tree.insert_interval(P.Node(P.singleton(24), 'j'))
-        assert tree.root.right.left.right == P.Node(P.singleton(24), 'j')
         assert self.check_interval_tree(tree) == True
+        assert tree.root == P.Node(P.openclosed(21, 23), 'f')
 
     def test_insert_interval_case2(self):
         tree = self.create_simple_tree()
@@ -249,18 +236,18 @@ class TestIntervalTree:
 
     def test_insert_interval_case4_2(self):
         tree = self.create_simple_tree()
-        print(tree)
         tree.insert_interval(P.Node(P.closed(16, 44), 'j'))
-        print(tree)
-        assert tree.root == P.Node(P.singleton(15), 'e')
-        assert tree.root.left == P.Node(P.closed(9, 10), 'b')
-        assert tree.root.left.left == P.Node(P.closed(4, 5), 'd')
+
+        assert tree.root.right.left == P.Node(P.singleton(15), 'e')
+        assert tree.root == P.Node(P.closed(9, 10), 'b')
+        assert tree.root.left == P.Node(P.closed(4, 5), 'd')
         assert tree.root.right == P.Node(P.closed(16, 44), 'j')
         assert self.check_interval_tree(tree) == True
 
     def test_insert_interval_case4_3(self):
         tree = self.create_simple_tree2()
         tree.insert_interval(P.Node(P.closed(7, 30), 'g'))
+
         assert tree.root == P.Node(P.closed(4, 5), 'd')
         assert tree.root.left == P.Node(P.closed(2, 3), 'k')
         assert tree.root.left.left == P.Node(P.closed(0, 1), 'j')
@@ -278,10 +265,42 @@ class TestIntervalTree:
         assert tree.root.right == P.Node(P.closed(28, 29), 'c')
         assert self.check_interval_tree(tree) == True
 
-    # def test_insert_interval_case5and6(self):
-    #     tree = self.create_simple_tree()
-    #     tree.insert_interval(P.Node(P.closed(29, 32), 'g'))
-    #     assert tree.root.right == P.Node(P.closedopen(28, 29), 'c')
-    #     assert tree.root.right.right == P.Node(P.closed(29, 32), 'g')
-    #     assert tree.root.right.right.right == P.Node(P.singleton(40), 'i')
-    #     assert self.check_interval_tree(tree) == True
+    def test_insert_interval_case4_5(self):
+        tree = self.create_simple_tree2()
+        tree.delete(tree.root.left)
+        tree.delete(tree.root.left)
+        tree.delete(tree.root.left)
+        tree.delete(tree.root.left)
+        tree.insert_interval(P.Node(P.closed(21, 45), 'z'))
+
+    def test_insert_interval_case4_6(self):
+        tree = self.create_simple_tree2()
+        tree.delete(tree.root.right)
+        tree.delete(tree.root.right)
+        tree.delete(tree.root.right)
+        tree.delete(tree.root.right)
+        print()
+        print(tree)
+        tree.insert_interval(P.Node(P.closed(21, 45), 'z'))
+        print()
+        print(tree)
+
+    def test_insert_interval_case5and6(self):
+        tree = self.create_simple_tree()
+        tree.insert_interval(P.Node(P.closed(29, 32), 'g'))
+        assert tree.root.right == P.Node(P.closedopen(28, 29), 'c')
+        assert tree.root.right.right == P.Node(P.closed(29, 32), 'g')
+        assert tree.root.right.right.right == P.Node(P.singleton(40), 'i')
+        assert self.check_interval_tree(tree) == True
+
+    def test_subtree_enclosure(self):
+        tree = self.create_simple_tree()
+        assert tree.root.subtree_enclosure == P.closed(4, 40)
+        assert tree.root.left.subtree_enclosure == P.closed(4, 15)
+        assert tree.root.left.left.subtree_enclosure == P.closed(4, 5)
+        assert tree.root.left.right.subtree_enclosure == P.singleton(15)
+        assert tree.root.right.subtree_enclosure == P.openclosed(21,40)
+        assert tree.root.right.left.subtree_enclosure == P.openclosed(21,24)
+        assert tree.root.right.right.subtree_enclosure == P.closed(30,40)
+        assert tree.root.right.left.right.subtree_enclosure == P.singleton(24)
+        assert tree.root.right.right.right.subtree_enclosure == P.singleton(40)

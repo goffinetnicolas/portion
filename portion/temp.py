@@ -151,54 +151,6 @@ def generate_interval(lower_bound, upper_bound, length):
         return P.singleton(a)
 
 
-def generate_singletons():
-    return P.singleton(r.randint(0, 10000))
-
-
-def test_insert_correct():
-    tree = P.IntervalTree()
-    values = ["a", "b", "c"]
-    l = []
-    for i in range(100):
-        s = generate_singletons()
-        if s not in l:
-            l.append(s)
-    for s in l:
-        node = P.Node(s, r.choice(values))
-        tree.insert(node)
-        print("inserting : ", node)
-        print(tree)
-        if check_size(tree) == False:
-            print("size not correct")
-            return False
-
-
-def test_delete_correct():
-    tree = P.IntervalTree()
-    values = ["a", "b", "c"]
-    l = []
-    nodes = []
-    for i in range(1000):
-        s = generate_singletons()
-        if s not in l:
-            l.append(s)
-    for s in l:
-        node = P.Node(s, r.choice(values))
-        nodes.append(node)
-        tree.insert(node)
-    while len(nodes) != 0:
-        n = r.choice(nodes)
-        print(tree)
-        print("deleting : ", n)
-        tree.delete(n)
-        print(tree)
-        nodes.remove(n)
-        if not tree.root.is_nil:
-            if check_size(tree) == False:
-                print("size not correct")
-                return False
-
-
 def test_insert_interval_correct():
     tree = P.IntervalTree()
     values = ["a", "b", "c"]
@@ -233,6 +185,9 @@ def test_interval_correct():
             if check_interval_tree(tree) == False:
                 print("interval tree not correct")
                 return False
+            if check_min_max(tree) == False:
+                print("min max not correct")
+                return False
         a = r.randint(0, 20)
         if not tree.root.is_nil:
             if a == 0:
@@ -249,6 +204,9 @@ def test_interval_correct():
                         return False
                     if check_interval_tree(tree) == False:
                         print("interval tree not correct")
+                        return False
+                    if check_min_max(tree) == False:
+                        print("min max not correct")
                         return False
 
 
@@ -281,6 +239,30 @@ def check_size(tree):
             return False
         current = tree.successor(current)
     return True
+
+def check_min_max(tree):
+    current = tree.minimum(tree.root)
+    while not current.is_nil:
+        if current.maximum != maximum(current):
+            return False
+        if current.minimum != minimum(current):
+            return False
+        current = tree.successor(current)
+    return True
+
+def minimum(x):
+    if x.is_nil:
+        raise TypeError("cannot compute minimum of empty tree")
+    while not x.left.is_nil:
+        x = x.left
+    return x
+
+def maximum(x):
+    if x.is_nil:
+        raise TypeError("cannot compute minimum of empty tree")
+    while not x.right.is_nil:
+        x = x.right
+    return x
 
 
 def create_simple_tree():
@@ -333,14 +315,35 @@ def timer():
     print(t.timeit("timer_interval_tree(set)", setup="from __main__ import timer_interval_tree, set", number=1))
     print(t.timeit("timer_dict(set)", setup="from __main__ import timer_dict, set", number=1))
 
+def create_simple_tree2():
+    tree = create_simple_tree()
+    tree.insert_interval(P.Node(P.closed(0, 1), 'j'))
+    tree.insert_interval(P.Node(P.closed(2, 3), 'k'))
+    tree.insert_interval(P.Node(P.singleton(7), 'l'))
+    tree.insert_interval(P.Node(P.closed(12, 13), 'm'))
+    tree.insert_interval(P.Node(P.closed(25, 26), 'n'))
+    tree.insert_interval(P.Node(P.closed(42, 43), 'o'))
+    tree.insert_interval(P.Node(P.closed(44, 45), 'p'))
+    return tree
+
 
 if __name__ == "__main__":
     #timer()
-    # x = P.intervaltree.Node(P.closed(42, 48), "a")
-    # r = P.intervaltree.Node(P.closed(40, 50), "b")
-    # print(x.interval <= r.interval)
-    # print(x.interval in r.interval
-    tree = create_simple_tree()
+    tree = create_simple_tree2()
+    print()
     print(tree)
-    tree.delete_using_interval(P.singleton(24))
+    tree.delete(tree.root.right)
+    print()
+    print(tree)
+    tree.delete(tree.root.right)
+    print()
+    print(tree)
+    tree.delete(tree.root.right)
+    print()
+    print(tree)
+    tree.delete(tree.root.right)
+    print()
+    print(tree)
+    tree.insert_interval(P.Node(P.closed(21, 45), 'z'))
+    print()
     print(tree)
