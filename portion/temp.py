@@ -14,9 +14,11 @@ def check_nil_color(tree):
     while not current.is_nil:
         if current.left.is_nil:
             if current.left.color == True:
+                print("check_nil_color : ", current, " left is nil but color is red")
                 return False
         if current.right.is_nil:
             if current.right.color == True:
+                print("check_nil_color : ", current, " right is nil but color is red")
                 return False
         current = tree.successor(current)
     return True
@@ -32,6 +34,7 @@ def check_red_colors(tree):
     while not current.is_nil:
         if current.color == True:
             if current.left.color == True or current.right.color == True:
+                print("check_red_colors : ", current, " is red but one of its children is red")
                 return False
         current = tree.successor(current)
     return True
@@ -46,6 +49,7 @@ def check_each_nodes_black_colors(tree):
     current = tree.minimum(tree.root)
     while not current.is_nil:
         if not check_black_colors(current, tree):
+            print("check_each_nodes_black_colors : ", current, " is not well-structured")
             return False
         current = tree.successor(current)
     return True
@@ -88,6 +92,7 @@ def check_black_colors(x, tree):
             if node.color == False:
                 num_black2 += 1
         if num_black1 != num_black2:
+            print("check_black_colors : ", x, " is not well-structured")
             return False
     return True
 
@@ -128,6 +133,7 @@ def check_interval_tree(tree):
     while not current.is_nil:
         for v in visited:
             if v.interval.overlaps(current.interval):
+                print("check_interval_tree : ", current, " overlaps with ", v)
                 return False
         visited.append(current)
         current = tree.successor(current)
@@ -150,43 +156,24 @@ def generate_interval(lower_bound, upper_bound, length):
     if num == 4:
         return P.singleton(a)
 
-
-def test_insert_interval_correct():
-    tree = P.IntervalTree()
-    values = ["a", "b", "c"]
-    for i in range(10000):
-        s = generate_interval(-10000, 10000, 10000)
-        node = P.Node(s, r.choice(values))
-        print(i, " inserting : ", node)
-        tree.insert_interval(node)
-        if check_size(tree) == False:
-            print("size not correct")
-            return False
-        if check_interval_tree(tree) == False:
-            print("interval tree not correct")
-            return False
-    print(tree)
-
-
 def test_interval_correct():
     tree = P.IntervalTree()
     values = ["a", "b", "c"]
     for i in range(10000):
         print()
         print(tree)
-        s = generate_interval(-10000, 10000, 10000)
+        s = generate_interval(0, 30, 3)
         node = P.Node(s, r.choice(values))
         print(i, " inserting : ", node)
         tree.insert_interval(node)
+        print()
+        print(tree)
         if not tree.root.is_nil:
             if check_size(tree) == False:
-                print("size not correct")
-                return False
-            if check_interval_tree(tree) == False:
-                print("interval tree not correct")
                 return False
             if check_min_max(tree) == False:
-                print("min max not correct")
+                return False
+            if check_interval_tree(tree) == False:
                 return False
         a = r.randint(0, 20)
         if not tree.root.is_nil:
@@ -200,19 +187,14 @@ def test_interval_correct():
                 tree.delete(n)
                 if not tree.root.is_nil:
                     if check_size(tree) == False:
-                        print("size not correct")
-                        return False
-                    if check_interval_tree(tree) == False:
-                        print("interval tree not correct")
                         return False
                     if check_min_max(tree) == False:
-                        print("min max not correct")
                         return False
-
-
+                    if check_interval_tree(tree) == False:
+                        return False
 def hard_test():
-    while (True):
-        test_interval_correct()
+    #while (True):
+    test_interval_correct()
 
 
 def test_delete_interval_correct():
@@ -244,8 +226,10 @@ def check_min_max(tree):
     current = tree.minimum(tree.root)
     while not current.is_nil:
         if current.maximum != maximum(current):
+            print(current)
             return False
         if current.minimum != minimum(current):
+            print(current)
             return False
         current = tree.successor(current)
     return True
@@ -263,31 +247,6 @@ def maximum(x):
     while not x.right.is_nil:
         x = x.right
     return x
-
-
-def create_simple_tree():
-    tree = P.IntervalTree()
-    a = P.Node(P.closed(16, 21), 'a')
-    b = P.Node(P.closed(9, 10), 'b')
-    c = P.Node(P.closed(28, 29), 'c')
-    d = P.Node(P.closed(4, 5), 'd')
-    e = P.Node(P.singleton(15), 'e')
-    f = P.Node(P.openclosed(21, 23), 'f')
-    g = P.Node(P.closedopen(30, 32), 'g')
-    h = P.Node(P.singleton(24), 'h')
-    i = P.Node(P.singleton(40), 'i')
-
-    tree.insert(a)
-    tree.insert(b)
-    tree.insert(c)
-    tree.insert(d)
-    tree.insert(e)
-    tree.insert(f)
-    tree.insert(g)
-    tree.insert(h)
-    tree.insert(i)
-
-    return tree
 
 def generate_dic_set(n):
     set = []
@@ -315,35 +274,7 @@ def timer():
     print(t.timeit("timer_interval_tree(set)", setup="from __main__ import timer_interval_tree, set", number=1))
     print(t.timeit("timer_dict(set)", setup="from __main__ import timer_dict, set", number=1))
 
-def create_simple_tree2():
-    tree = create_simple_tree()
-    tree.insert_interval(P.Node(P.closed(0, 1), 'j'))
-    tree.insert_interval(P.Node(P.closed(2, 3), 'k'))
-    tree.insert_interval(P.Node(P.singleton(7), 'l'))
-    tree.insert_interval(P.Node(P.closed(12, 13), 'm'))
-    tree.insert_interval(P.Node(P.closed(25, 26), 'n'))
-    tree.insert_interval(P.Node(P.closed(42, 43), 'o'))
-    tree.insert_interval(P.Node(P.closed(44, 45), 'p'))
-    return tree
-
 
 if __name__ == "__main__":
     #timer()
-    tree = create_simple_tree2()
-    print()
-    print(tree)
-    tree.delete(tree.root.right)
-    print()
-    print(tree)
-    tree.delete(tree.root.right)
-    print()
-    print(tree)
-    tree.delete(tree.root.right)
-    print()
-    print(tree)
-    tree.delete(tree.root.right)
-    print()
-    print(tree)
-    tree.insert_interval(P.Node(P.closed(21, 45), 'z'))
-    print()
-    print(tree)
+    hard_test()

@@ -130,6 +130,32 @@ class TestIntervalTree:
             current = tree.successor(current)
         return self.check_rb_tree(tree)
 
+    def check_min_max(self,tree):
+        current = tree.minimum(tree.root)
+        while not current.is_nil:
+            if current.maximum != self.maximum(current):
+                print(current)
+                return False
+            if current.minimum != self.minimum(current):
+                print(current)
+                return False
+            current = tree.successor(current)
+        return True
+
+    def minimum(self,x):
+        if x.is_nil:
+            raise TypeError("cannot compute minimum of empty tree")
+        while not x.left.is_nil:
+            x = x.left
+        return x
+
+    def maximum(self,x):
+        if x.is_nil:
+            raise TypeError("cannot compute minimum of empty tree")
+        while not x.right.is_nil:
+            x = x.right
+        return x
+
     def create_simple_tree(self):
         tree = P.IntervalTree()
         a = P.Node(P.closed(16, 21), 'a')
@@ -188,6 +214,8 @@ class TestIntervalTree:
         assert tree.root.right.right.right == P.Node(P.singleton(40), 'i')
         assert self.check_interval_tree(tree) == True
 
+        assert self.check_min_max(tree) == True
+
 
     def test_delete_case1(self):
         tree = self.create_simple_tree()
@@ -195,6 +223,7 @@ class TestIntervalTree:
         tree.delete(tree.root.right.left)
         assert self.check_interval_tree(tree) == True
         assert tree.root.right.left == P.Node(P.singleton(24), 'h')
+        assert self.check_min_max(tree) == True
 
     def test_delete_case2(self):
         tree = self.create_simple_tree()
@@ -203,18 +232,23 @@ class TestIntervalTree:
         tree.delete(tree.root.left.right)
         assert self.check_interval_tree(tree) == True
         assert tree.root.left.right == P.Node(P.singleton(12), 'j')
+        assert self.check_min_max(tree) == True
 
     def test_delete_case3(self):
         tree = self.create_simple_tree()
         tree.delete(tree.root)
         assert self.check_interval_tree(tree) == True
         assert tree.root == P.Node(P.openclosed(21, 23), 'f')
+        assert self.check_min_max(tree) == True
+
 
     def test_insert_interval_case2(self):
         tree = self.create_simple_tree()
-        tree.insert_interval(P.Node(P.closed(18, 20), 'a'))
-        assert tree.root == P.Node(P.closed(18, 20), 'a')
+        tree.root.left.interval = P.closed(8,12)
+        tree.insert_interval(P.Node(P.closed(9, 10), 'b'))
+        assert tree.root.left == P.Node(P.closed(9, 10), 'b')
         assert self.check_interval_tree(tree) == True
+        assert self.check_min_max(tree) == True
 
     def test_insert_interval_case3(self):
         tree = self.create_simple_tree()
@@ -223,6 +257,7 @@ class TestIntervalTree:
         assert tree.root.left.right.right == P.Node(P.closedopen(16, 18), 'a')
         assert tree.root.right.left.left == P.Node(P.openclosed(20, 21), 'a')
         assert self.check_interval_tree(tree) == True
+        assert self.check_min_max(tree) == True
 
     def test_insert_interval_case4_1(self):
         # probably more case to test for case 4
@@ -233,21 +268,21 @@ class TestIntervalTree:
         assert tree.root.right.left.right == tree.nil
         assert tree.root.right.right == P.Node(P.singleton(40), 'i')
         assert self.check_interval_tree(tree) == True
+        assert self.check_min_max(tree) == True
 
     def test_insert_interval_case4_2(self):
         tree = self.create_simple_tree()
         tree.insert_interval(P.Node(P.closed(16, 44), 'j'))
-
         assert tree.root.right.left == P.Node(P.singleton(15), 'e')
         assert tree.root == P.Node(P.closed(9, 10), 'b')
         assert tree.root.left == P.Node(P.closed(4, 5), 'd')
         assert tree.root.right == P.Node(P.closed(16, 44), 'j')
         assert self.check_interval_tree(tree) == True
+        assert self.check_min_max(tree) == True
 
     def test_insert_interval_case4_3(self):
         tree = self.create_simple_tree2()
         tree.insert_interval(P.Node(P.closed(7, 30), 'g'))
-
         assert tree.root == P.Node(P.closed(4, 5), 'd')
         assert tree.root.left == P.Node(P.closed(2, 3), 'k')
         assert tree.root.left.left == P.Node(P.closed(0, 1), 'j')
@@ -256,6 +291,7 @@ class TestIntervalTree:
         assert tree.root.right.right == P.Node(P.closed(42, 43), 'o')
         assert tree.root.right.right.right == P.Node(P.closed(44, 45), 'p')
         assert self.check_interval_tree(tree) == True
+        assert self.check_min_max(tree) == True
 
     def test_insert_interval_case4_4(self):
         tree = self.create_simple_tree2()
@@ -264,6 +300,7 @@ class TestIntervalTree:
         assert tree.root.left == P.Node(P.closed(9, 10), 'b')
         assert tree.root.right == P.Node(P.closed(28, 29), 'c')
         assert self.check_interval_tree(tree) == True
+        assert self.check_min_max(tree) == True
 
     def test_insert_interval_case4_5(self):
         tree = self.create_simple_tree2()
@@ -272,6 +309,8 @@ class TestIntervalTree:
         tree.delete(tree.root.left)
         tree.delete(tree.root.left)
         tree.insert_interval(P.Node(P.closed(21, 45), 'z'))
+        assert self.check_interval_tree(tree) == True
+        assert self.check_min_max(tree) == True
 
     def test_insert_interval_case4_6(self):
         tree = self.create_simple_tree2()
@@ -279,11 +318,11 @@ class TestIntervalTree:
         tree.delete(tree.root.right)
         tree.delete(tree.root.right)
         tree.delete(tree.root.right)
-        print()
-        print(tree)
-        tree.insert_interval(P.Node(P.closed(21, 45), 'z'))
-        print()
-        print(tree)
+        tree.delete(tree.root.right)
+        tree.insert_interval(P.Node(P.closed(0, 15), 'z'))
+        assert self.check_interval_tree(tree) == True
+        assert self.check_min_max(tree) == True
+
 
     def test_insert_interval_case5and6(self):
         tree = self.create_simple_tree()
@@ -292,6 +331,7 @@ class TestIntervalTree:
         assert tree.root.right.right == P.Node(P.closed(29, 32), 'g')
         assert tree.root.right.right.right == P.Node(P.singleton(40), 'i')
         assert self.check_interval_tree(tree) == True
+        assert self.check_min_max(tree) == True
 
     def test_subtree_enclosure(self):
         tree = self.create_simple_tree()
@@ -304,3 +344,20 @@ class TestIntervalTree:
         assert tree.root.right.right.subtree_enclosure == P.closed(30,40)
         assert tree.root.right.left.right.subtree_enclosure == P.singleton(24)
         assert tree.root.right.right.right.subtree_enclosure == P.singleton(40)
+
+    def test_left_rotation(self):
+        tree = self.create_simple_tree()
+        tree.left_rotate(tree.root)
+        assert self.check_min_max(tree) == True
+        tree.left_rotate(tree.root)
+        assert self.check_min_max(tree) == True
+        tree.left_rotate(tree.root)
+        assert self.check_min_max(tree) == True
+
+    def test_right_rotation(self):
+        tree = self.create_simple_tree()
+        tree.right_rotate(tree.root)
+        assert self.check_min_max(tree) == True
+        tree.right_rotate(tree.root)
+        assert self.check_min_max(tree) == True
+
