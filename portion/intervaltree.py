@@ -25,8 +25,6 @@ class Node:
         self.minimum = self
         self.maximum = self
 
-        # enclosure (range of all intervals in the subtree)
-        self.enclosure = interval
 
         # nil nodes have self.size = 0
         # leaf nodes have self.size = 1
@@ -60,9 +58,9 @@ class Node:
 
     def __repr__(self):
         if self.color is True:
-            return f'interval: {self.interval}, value: {self.value}, color: red, size : {self.size}, minimum: {self.minimum.interval}, maximum: {self.maximum.interval}'
+            return f'interval: {self.interval}, value: {self.value}, color: red, size : {self.size}, minimum: {self.minimum.interval}, maximum: {self.maximum.interval}, enclosure: {self.subtree_enclosure}'
         if self.color is False:
-            return f'interval: {self.interval}, value: {self.value}, color: black, size : {self.size}, minimum: {self.minimum.interval}, maximum: {self.maximum.interval}'
+            return f'interval: {self.interval}, value: {self.value}, color: black, size : {self.size}, minimum: {self.minimum.interval}, maximum: {self.maximum.interval}, enclosure: {self.subtree_enclosure}'
 
 
 class IntervalTree:
@@ -83,7 +81,6 @@ class IntervalTree:
         self.nil = Node(empty(), "NIL")
         self.nil.color = False
         self.nil.size = 0
-        self.nil.enclosure = empty()
 
         # define empty root
         self.root = self.nil
@@ -164,10 +161,6 @@ class IntervalTree:
         y.size = x.size
         x.size = x.left.size + x.right.size + 1
 
-        # update enclosure
-        y.enclosure = x.enclosure
-        x.enclosure = (x.left.enclosure | x.right.enclosure | x.interval).enclosure
-
         y.minimum = x.minimum
         if x.right.is_nil:
             x.maximum = x
@@ -198,10 +191,6 @@ class IntervalTree:
         # update size
         y.size = x.size
         x.size = x.left.size + x.right.size + 1
-
-        # update enclosure
-        y.enclosure = x.enclosure
-        x.enclosure = (x.left.enclosure | x.right.enclosure | x.interval).enclosure
 
 
         y.maximum = x.maximum
@@ -262,10 +251,6 @@ class IntervalTree:
         while not x.is_nil:
             # update size
             x.size = x.size + 1
-
-            # update enclosure
-            if x.enclosure < z.interval or x.enclosure > z.interval:
-                x.enclosure = (x.enclosure | z.interval).enclosure
 
             if x.minimum.interval > z.interval:
                 x.minimum = z
@@ -376,10 +361,6 @@ class IntervalTree:
                 # update size
                 f.size = f.size - 1
 
-                # update enclosure
-                if f.enclosure.lower == z.interval.lower or f.enclosure.upper == z.interval.upper:
-                    f.enclosure = (f.interval | f.left.enclosure | f.right.enclosure).enclosure
-
                 if z == f.minimum:
                     if f.left.is_nil:
                         f.minimum = f
@@ -405,10 +386,6 @@ class IntervalTree:
                 # update size
                 f.size = f.size - 1
 
-                # update enclosure
-                if f.enclosure.lower == z.interval.lower or f.enclosure.upper == z.interval.upper:
-                    f.enclosure = (f.interval | f.left.enclosure | f.right.enclosure).enclosure
-
                 if z == f.minimum:
                     if f.left.is_nil:
                         f.minimum = f
@@ -428,16 +405,10 @@ class IntervalTree:
             # update node attributes from y to root
             u = y
             u.size = z.size
-            u.enclosure = z.enclosure
-            # TODO problem here with u.maximum and u.minimum
             while not u.is_nil:
 
                 # update size
                 u.size = u.size - 1
-
-                # update enclosure
-                if u.enclosure.lower == z.interval.lower or u.enclosure.upper == z.interval.upper:
-                    u.enclosure = (u.interval | u.left.enclosure | u.right.enclosure).enclosure
 
                 if y == u.left:
                     if y.maximum != y:
@@ -465,13 +436,9 @@ class IntervalTree:
             y.left = z.left
             y.left.p = y
             y.color = z.color
-        # print("tree before fixup")
-        # print(self)
+
         if y_original_color == False:
             self.rb_delete_fixup(x)
-        # print()
-        # print("Delete done")
-        # print(self)
 
     def delete_using_interval(self, interval):
         """
@@ -576,11 +543,11 @@ class IntervalTree:
     def check_left_enclosure(self, x, z, safe_subtree, unsafe_subtree):
         if x.left.is_nil:
             return True
-        if x.left.enclosure < z.interval:
+        if x.left.subtree_enclosure < z.interval:
             if not x.left.is_nil:
                 safe_subtree.append(x.left)
             return True
-        elif x.left.enclosure in z.interval:
+        elif x.left.subtree_enclosure in z.interval:
             if not x.left.is_nil:
                 unsafe_subtree.append(x.left)
             return True
@@ -590,11 +557,11 @@ class IntervalTree:
     def check_right_enclosure(self, x, z, safe_subtree, unsafe_subtree):
         if x.right.is_nil:
             return True
-        if x.right.enclosure > z.interval:
+        if x.right.subtree_enclosure > z.interval:
             if not x.right.is_nil:
                 safe_subtree.append(x.right)
             return True
-        elif x.right.enclosure in z.interval:
+        elif x.right.subtree_enclosure in z.interval:
             if not x.right.is_nil:
                 unsafe_subtree.append(x.right)
             return True
@@ -624,13 +591,6 @@ class IntervalTree:
             self.locate_nodes(x.left, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
         if self.check_right_enclosure(x, z, safesubtree, unsafesubtree) == False:
             self.locate_nodes(x.right, z, safesubtree, safenode, modify, unsafesubtree, unsafenode)
-        print()
-        print("safe subtree: ", safesubtree)
-        print("safe node: ", safenode)
-        print("modify: ", modify)
-        print("unsafe subtree: ", unsafesubtree)
-        print("unsafe node: ", unsafenode)
-        print()
         for node in modify:
             x.interval = x.interval | node.interval
         safe = len(safenode)
@@ -721,7 +681,6 @@ class IntervalTree:
                     x.value = z.value
                 return
             elif x.interval in z.interval:
-                print(x.interval," in ",z.interval)
                 # case 4 : x interval is included in z interval
                 x.interval = z.interval
                 x.value = z.value
@@ -729,7 +688,6 @@ class IntervalTree:
                 return
             elif z.interval <= x.interval:
                 if x.value == z.value:
-                    print(z.interval," <= ",x.interval," and have the same value")
                     # case 5 : z interval <= x interval and have the same value
                     # extend x value
                     x.interval = x.interval | z.interval
@@ -743,7 +701,6 @@ class IntervalTree:
             else:
                 # symmetric case of case 5 and 6
                 if x.value == z.value:
-                    print(z.interval," >= ",x.interval," and have the same value")
                     x.interval = x.interval | z.interval
                     self.check_overlaps(x, z)
                     return
@@ -771,9 +728,6 @@ class IntervalTree:
             # update size
             f.size = f.size + 1
 
-            # update enclosure
-            if f.enclosure < z.interval or f.enclosure > z.interval:
-                f.enclosure = (f.enclosure | z.interval).enclosure
 
             if f.minimum.interval > z.interval:
                 f.minimum = z

@@ -1,7 +1,5 @@
 import portion as P
 import random as r
-
-
 import timeit as t
 
 
@@ -162,7 +160,7 @@ def test_interval_correct():
     for i in range(10000):
         print()
         print(tree)
-        s = generate_interval(0, 30, 3)
+        s = generate_interval(-10000, 10000, 10000)
         node = P.Node(s, r.choice(values))
         print(i, " inserting : ", node)
         tree.insert_interval(node)
@@ -193,8 +191,8 @@ def test_interval_correct():
                     if check_interval_tree(tree) == False:
                         return False
 def hard_test():
-    #while (True):
-    test_interval_correct()
+    while (True):
+        test_interval_correct()
 
 
 def test_delete_interval_correct():
@@ -268,7 +266,7 @@ def timer_dict(set):
         dic[s[0]] = s[1]
     return dic
 
-set = generate_dic_set(1000000)
+set = generate_dic_set(100000)
 def timer():
 
     print(t.timeit("timer_interval_tree(set)", setup="from __main__ import timer_interval_tree, set", number=1))
@@ -276,5 +274,5 @@ def timer():
 
 
 if __name__ == "__main__":
-    #timer()
-    hard_test()
+    timer()
+    #hard_test()
