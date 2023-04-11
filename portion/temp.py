@@ -141,7 +141,7 @@ def check_interval_tree(tree):
 def generate_interval(lower_bound, upper_bound, length):
     num = r.randint(0, 4)
     a = r.randint(lower_bound, upper_bound)
-    b = r.randint(0, length)
+    b = r.randint(1, length)
     c = a + b
     if num == 0:
         return P.open(a, c)
@@ -190,26 +190,7 @@ def test_interval_correct():
                         return False
                     if check_interval_tree(tree) == False:
                         return False
-def hard_test():
-    while (True):
-        test_interval_correct()
 
-
-def test_delete_interval_correct():
-    tree = P.IntervalTree()
-    values = ["a", "b", "c"]
-    nodes = []
-    for i in range(5000):
-        s = generate_interval(10)
-        node = P.Node(s, r.choice(values))
-        nodes.append(node)
-        tree.insert(node)
-    while len(nodes) != 0:
-        n = r.choice(nodes)
-        print(tree)
-        print("deleting : ", n)
-        tree.delete(n)
-        nodes.remove(n)
 
 
 def check_size(tree):
@@ -246,33 +227,6 @@ def maximum(x):
         x = x.right
     return x
 
-def generate_dic_set(n):
-    set = []
-    values = ["a", "b", "c"]
-    for i in range(n):
-        s = generate_interval(-10000, 10000, 10000)
-        set.append([s, r.choice(values)])
-    return set
-
-def timer_interval_tree(set):
-    tree = P.IntervalTree()
-    for s in set:
-        tree.insert_interval(P.Node(s[0], s[1]))
-    return tree
-
-def timer_dict(set):
-    dic = P.IntervalDict()
-    for s in set:
-        dic[s[0]] = s[1]
-    return dic
-
-set = generate_dic_set(100000)
-def timer():
-
-    print(t.timeit("timer_interval_tree(set)", setup="from __main__ import timer_interval_tree, set", number=1))
-    print(t.timeit("timer_dict(set)", setup="from __main__ import timer_dict, set", number=1))
-
 
 if __name__ == "__main__":
-    timer()
-    #hard_test()
+    test_interval_correct()

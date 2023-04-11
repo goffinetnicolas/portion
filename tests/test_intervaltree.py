@@ -65,7 +65,7 @@ class TestIntervalTree:
 
         current = tree.minimum(x)
         paths = []
-        while current != tree.successor(tree.maximum(x)):
+        while current != tree.successor(x.maximum):
             if current.left.is_nil:
                 path = self.create_path(current, x, tree)
                 paths.append(path)
@@ -133,10 +133,10 @@ class TestIntervalTree:
     def check_min_max(self,tree):
         current = tree.minimum(tree.root)
         while not current.is_nil:
-            if current.maximum != self.maximum(current):
+            if current.maximum != current.maximum:
                 print(current)
                 return False
-            if current.minimum != self.minimum(current):
+            if current.minimum != current.minimum:
                 print(current)
                 return False
             current = tree.successor(current)
@@ -360,4 +360,10 @@ class TestIntervalTree:
         assert self.check_min_max(tree) == True
         tree.right_rotate(tree.root)
         assert self.check_min_max(tree) == True
+
+    def test_search(self):
+        tree = self.create_simple_tree()
+        a=tree.iterative_search(tree.root, P.closed(12,25))
+        print()
+        print(a)
 

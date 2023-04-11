@@ -1,9 +1,8 @@
 from sortedcontainers import SortedDict
 from collections.abc import MutableMapping, Mapping
-
-from .intervaltree import IntervalTree
 from .const import Bound
 from .interval import Interval
+from .intervaltree import IntervalTree
 
 
 def _sort(i):
@@ -21,7 +20,7 @@ class IntervalDict(MutableMapping):
     subset of values covered by the given interval. If no matching value is
     found, an empty IntervalDict is returned.
     When keys are "single values", its behaviour corresponds to the one of Python
-    built-in dict. When no matchin value is found, a KeyError is raised.
+    built-in dict. When no matching value is found, a KeyError is raised.
 
     Note that this class does not aim to have the best performance, but is
     provided mainly for convenience. Its performance mainly depends on the
@@ -29,7 +28,6 @@ class IntervalDict(MutableMapping):
     """
 
     __slots__ = ("_storage",)
-
 
     # Class to use when creating Interval instances
     _klass = Interval
@@ -45,7 +43,7 @@ class IntervalDict(MutableMapping):
 
         :param mapping_or_iterable: optional mapping or iterable.
         """
-        self._storage = IntervalTree()  # Mapping from intervals to values
+        self._storage = IntervalTree()
 
         if mapping_or_iterable is not None:
             self.update(mapping_or_iterable)
@@ -71,7 +69,7 @@ class IntervalDict(MutableMapping):
         """
         Remove all items from the IntervalDict.
         """
-        self._storage.clear()
+        self._storage.__init__()
 
     def copy(self):
         """
@@ -112,34 +110,66 @@ class IntervalDict(MutableMapping):
         :param value: value to look for.
         :return: an Interval instance.
         """
-        return self._klass(*(i for i, v in self._storage.items() if v == value))
+        # return self._klass(*(i for i, v in self._storage.items() if v == value))
+        interval = self._klass.empty
+        current = self._storage.minimum(self._storage.root)
+        while not current.is_nil():
+            if current.value == value:
+                interval |= current.interval
+            current = self._storage.successor(current)
+        return interval
 
     def items(self):
         """
         Return a view object on the contained items sorted by key
         (see https://docs.python.org/3/library/stdtypes.html#dict-views).
 
-        :return: a view object.
+        :return: a list of key values tuples.
         """
-        return self._storage.items()
+        # return self._storage.items()
+        items = []
+        current = self._storage.minimum(self._storage.root)
+        while not current.is_nil():
+            value = False
+            for item in items:
+                if item[1] == current.value:
+                    item[0] |= current.interval
+                    value = True
+            if not value:
+                items.append([current.interval, current.value])
+            current = self._storage.successor(current)
+        return items
 
     def keys(self):
         """
         Return a view object on the contained keys (sorted)
         (see https://docs.python.org/3/library/stdtypes.html#dict-views).
 
-        :return: a view object.
+        :return: list of keys.
         """
-        return self._storage.keys()
+        # return self._storage.keys()
+        keys = []
+        current = self._storage.minimum(self._storage.root)
+        while not current.is_nil():
+            keys.append(current.interval)
+            current = self._storage.successor(current)
+        return keys
 
     def values(self):
         """
         Return a view object on the contained values sorted by key
         (see https://docs.python.org/3/library/stdtypes.html#dict-views).
 
-        :return: a view object.
+        :return: a list of values.
         """
-        return self._storage.values()
+        # return self._storage.values()
+        values = []
+        current = self._storage.minimum(self._storage.root)
+        while not current.is_nil():
+            if current.value not in values:
+                values.append(current.value)
+            current = self._storage.successor(current)
+        return values
 
     def domain(self):
         """
@@ -147,7 +177,7 @@ class IntervalDict(MutableMapping):
 
         :return: an Interval.
         """
-        return self._klass(*self._storage.keys())
+        return self._klass(*self.keys())
 
     def pop(self, key, default=None):
         """
@@ -164,12 +194,12 @@ class IntervalDict(MutableMapping):
         """
         if default is None:
             value = self[key]
-            del self[key]
+            del self[key]  # might not work
             return value
         else:
             value = self.get(key, default)
             try:
-                del self[key]
+                del self[key]  # might not work
             except KeyError:
                 pass
             return value
@@ -181,7 +211,13 @@ class IntervalDict(MutableMapping):
 
         :return: a (key, value) pair.
         """
-        return self._storage.popitem()
+        # return self._storage.popitem()
+        delete = self._storage.maximum(self._storage.root)
+        if delete.is_nil():
+            raise KeyError
+        else:
+            self._storage.delete(delete)
+            return delete.interval, delete.value
 
     def setdefault(self, key, default=None):
         """
@@ -263,45 +299,69 @@ class IntervalDict(MutableMapping):
         """
         if atomic:
             d = dict()
-            for interval, v in self._storage.items():
+            for interval, v in self.items():
                 for i in interval:
                     d[i] = v
             return d
         else:
-            return dict(self._storage)
+            return dict(self.items())
 
     def __getitem__(self, key):
+        # if isinstance(key, Interval):
+        #     items = []
+        #     for i, v in self._storage.items():
+        #         # Early out
+        #         if key.upper < i.lower:
+        #             break
+        #
+        #         intersection = key & i
+        #         if not intersection.empty:
+        #             items.append((intersection, v))
+        #     return self.__class__._from_items(items)
+        # else:
+        #     for i, v in self._storage.items():
+        #         # Early out
+        #         if key < i.lower:
+        #             break
+        #         if key in i:
+        #             return v
+        #     raise KeyError(key)
+
+        x = self._storage.root
         if isinstance(key, Interval):
             items = []
-            for i, v in self._storage.items():
-                # Early out
-                if key.upper < i.lower:
-                    break
-
-                intersection = key & i
-                if not intersection.empty:
-                    items.append((intersection, v))
+            if self._storage.minimum(x) > key.upper or self._storage.maximum(x) < key.lower:
+                return self.__class__._from_items(items)
+            while not x.left.is_nil and x.right.is_nil:
+                if x.interval.overlaps(key):
+                    x = x.left
+                else:
+                    x = x.right
+            while x.overlaps(key):
+                items.append((x.interval, x.value))
+                x = self._storage.successor(x)
             return self.__class__._from_items(items)
         else:
-            for i, v in self._storage.items():
-                # Early out
-                if key < i.lower:
-                    break
-                if key in i:
-                    return v
+            if self._storage.minimum(x) > key.upper or self._storage.maximum(x) < key.lower:
+                raise KeyError(key)
+            while not x.is_nil:
+                if key in x.interval:
+                    return x.value
+                if x.interval > key:
+                    x = x.left
+                else:
+                    x = x.right
             raise KeyError(key)
 
     def __setitem__(self, key, value):
-        if isinstance(key, Interval):
-            interval = key
-        else:
-            interval = self._klass.from_atomic(Bound.CLOSED, key, key, Bound.CLOSED)
-
-        if interval.empty:
-            return
-
-        self._storage.insertNode(interval, value)
-
+        # if isinstance(key, Interval):
+        #     interval = key
+        # else:
+        #     interval = self._klass.from_atomic(Bound.CLOSED, key, key, Bound.CLOSED)
+        #
+        # if interval.empty:
+        #     return
+        #
         # removed_keys = []
         # added_items = []
         #
@@ -329,7 +389,49 @@ class IntervalDict(MutableMapping):
         # for key, value in added_items:
         #     self._storage[key] = value
 
+        if isinstance(key, Interval):
+            interval = key
+        else:
+            interval = self._klass.from_atomic(Bound.CLOSED, key, key, Bound.CLOSED)
+        if interval.empty:
+            return
+        self._storage.insertNode(interval, value)
+
     def __delitem__(self, key):
+        # if isinstance(key, Interval):
+        #     interval = key
+        # else:
+        #     interval = self._klass.from_atomic(Bound.CLOSED, key, key, Bound.CLOSED)
+        #
+        # if interval.empty:
+        #     return
+        #
+        # removed_keys = []
+        # added_items = []
+        #
+        # found = False
+        # for i, v in self._storage.items():
+        #     # Early out
+        #     if interval.upper < i.lower:
+        #         break
+        #
+        #     if i.overlaps(interval):
+        #         found = True
+        #         remaining = i - interval
+        #         removed_keys.append(i)
+        #         if not remaining.empty:
+        #             added_items.append((remaining, v))
+        #
+        # if not found and not isinstance(key, Interval):
+        #     raise KeyError(key)
+        #
+        # # Update storage accordingly
+        # for key in removed_keys:
+        #     self._storage.pop(key)
+        #
+        # for key, value in added_items:
+        #     self._storage[key] = value
+
         if isinstance(key, Interval):
             interval = key
         else:
@@ -338,31 +440,7 @@ class IntervalDict(MutableMapping):
         if interval.empty:
             return
 
-        removed_keys = []
-        added_items = []
-
-        found = False
-        for i, v in self._storage.items():
-            # Early out
-            if interval.upper < i.lower:
-                break
-
-            if i.overlaps(interval):
-                found = True
-                remaining = i - interval
-                removed_keys.append(i)
-                if not remaining.empty:
-                    added_items.append((remaining, v))
-
-        if not found and not isinstance(key, Interval):
-            raise KeyError(key)
-
-        # Update storage accordingly
-        for key in removed_keys:
-            self._storage.pop(key)
-
-        for key, value in added_items:
-            self._storage[key] = value
+        self._storage.deleteNode(interval)
 
     def __or__(self, other):
         d = self.copy()
