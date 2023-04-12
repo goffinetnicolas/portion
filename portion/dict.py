@@ -61,7 +61,7 @@ class IntervalDict(MutableMapping):
         """
         d = cls()
         for key, value in items:
-            d._storage[key] = value
+            d[key] = value
 
         return d
 
@@ -129,7 +129,7 @@ class IntervalDict(MutableMapping):
         # return self._storage.items()
         items = []
         current = self._storage.minimum(self._storage.root)
-        while not current.is_nil():
+        while not current.is_nil:
             value = False
             for item in items:
                 if item[1] == current.value:
@@ -150,7 +150,7 @@ class IntervalDict(MutableMapping):
         # return self._storage.keys()
         keys = []
         current = self._storage.minimum(self._storage.root)
-        while not current.is_nil():
+        while not current.is_nil:
             keys.append(current.interval)
             current = self._storage.successor(current)
         return keys
@@ -330,19 +330,21 @@ class IntervalDict(MutableMapping):
         x = self._storage.root
         if isinstance(key, Interval):
             items = []
-            if self._storage.minimum(x) > key.upper or self._storage.maximum(x) < key.lower:
+            if self._storage.minimum(x).interval > key.upper:
                 return self.__class__._from_items(items)
-            while not x.left.is_nil and x.right.is_nil:
+            while not x.left.is_nil:
                 if x.interval.overlaps(key):
                     x = x.left
                 else:
                     x = x.right
-            while x.overlaps(key):
-                items.append((x.interval, x.value))
+            while x.interval.overlaps(key) and not x.is_nil:
+                intersection = key & x.interval
+                if not intersection.empty:
+                    items.append((intersection, x.value))
                 x = self._storage.successor(x)
             return self.__class__._from_items(items)
         else:
-            if self._storage.minimum(x) > key.upper or self._storage.maximum(x) < key.lower:
+            if self._storage.minimum(x).interval > key:
                 raise KeyError(key)
             while not x.is_nil:
                 if key in x.interval:
@@ -440,7 +442,7 @@ class IntervalDict(MutableMapping):
         if interval.empty:
             return
 
-        self._storage.deleteNode(interval)
+        self._storage.delete_interval(interval)
 
     def __or__(self, other):
         d = self.copy()
@@ -452,10 +454,10 @@ class IntervalDict(MutableMapping):
         return self
 
     def __iter__(self):
-        return iter(self._storage)
+        return iter(self.keys())
 
     def __len__(self):
-        return len(self._storage)
+        return self._storage.root.size
 
     def __contains__(self, key):
         return key in self.domain()

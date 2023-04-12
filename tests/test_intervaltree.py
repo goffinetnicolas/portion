@@ -361,9 +361,11 @@ class TestIntervalTree:
         tree.right_rotate(tree.root)
         assert self.check_min_max(tree) == True
 
-    def test_search(self):
+    def test_locate2(self):
         tree = self.create_simple_tree()
-        a=tree.iterative_search(tree.root, P.closed(12,25))
         print()
-        print(a)
+        print(tree)
+        tree.delete_interval(P.singleton(31))
+        print()
+        print(tree)
 
