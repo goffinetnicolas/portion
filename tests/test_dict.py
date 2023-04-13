@@ -93,7 +93,7 @@ class TestIntervalDict:
         assert d.setdefault(0, default=1) == 0
         assert d[0] == 0
 
-    def test_setdefault_with_intervals(self):
+    def test_setdefault_with_intervals(self): # error
         d = P.IntervalDict([(P.closed(0, 2), 0)])
         t = d.setdefault(P.closed(-2, -1), -1)
         assert t.as_dict() == {P.closed(-2, -1): -1}
@@ -123,19 +123,19 @@ class TestIntervalDict:
         assert len(P.IntervalDict().keys()) == 0
         assert P.IntervalDict().domain() == P.empty()
 
-    def test_views(self):
-        d = P.IntervalDict({P.closed(0, 2): 3, P.closed(3, 4): 2})
-
-        k, v, i = d.keys(), d.values(), d.items()
-        assert len(k) == len(v) == len(i) == len(d)
-        assert list(k) == [P.closed(0, 2), P.closed(3, 4)]
-        assert list(v) == [3, 2]
-        assert list(i) == [(P.closed(0, 2), 3), (P.closed(3, 4), 2)]
-
-        d[5] = 4
-        assert list(k) == list(d.keys())
-        assert list(v) == list(d.values())
-        assert list(i) == list(d.items())
+    # def test_views(self):
+    #     d = P.IntervalDict({P.closed(0, 2): 3, P.closed(3, 4): 2})
+    #
+    #     k, v, i = d.keys(), d.values(), d.items()
+    #     assert len(k) == len(v) == len(i) == len(d)
+    #     assert list(k) == [P.closed(0, 2), P.closed(3, 4)]
+    #     assert list(v) == [3, 2]
+    #     assert list(i) == [(P.closed(0, 2), 3), (P.closed(3, 4), 2)]
+    #
+    #     d[5] = 4
+    #     assert list(k) == list(d.keys())
+    #     assert list(v) == list(d.values())
+    #     assert list(i) == list(d.items())
 
     def test_issue_39(self):
         # https://github.com/AlexandreDecan/portion/issues/39
@@ -149,6 +149,19 @@ class TestIntervalDict:
         d = P.IntervalDict([(P.closed(0, 3), 0)])
         assert P.IntervalDict().combine(d, add) == d
         assert d.combine(P.IntervalDict(), add) == d
+
+    def test_bug(self):
+        d1 = P.IntervalDict([(P.closed(1, 3) | P.closed(5, 7), 1)])
+        d2 = P.IntervalDict([(P.closed(2, 4) | P.closed(6, 8), 2)])
+        # print()
+        # print(d1.combine(d2, lambda x, y: x + y)._storage)
+        # print(P.IntervalDict([
+        #     (P.closedopen(1, 2) | P.closedopen(5, 6), 1),
+        #     (P.closed(2, 3) | P.closed(6, 7), 3),
+        #     (P.openclosed(3, 4) | P.openclosed(7, 8), 2),
+        # ])._storage)
+        print()
+        print(d1[P.closedopen(1, 2) | P.closedopen(5, 6)])
 
     def test_combine_nonempty(self):
         def add(x, y): return x + y

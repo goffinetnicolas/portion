@@ -361,11 +361,39 @@ class TestIntervalTree:
         tree.right_rotate(tree.root)
         assert self.check_min_max(tree) == True
 
-    def test_locate2(self):
+    def test_delete_interval(self):
         tree = self.create_simple_tree()
         print()
         print(tree)
-        tree.delete_interval(P.singleton(31))
+        tree.delete_interval(P.closed(18,22))
+        print()
+        print(tree)
+
+    def test_get(self):
+        tree = self.create_simple_tree()
+        print()
+        print(tree.get(P.closed(14,25)))
+
+    def test_items(self):
+        tree = self.create_simple_tree()
+        tree.insert_interval(P.Node(P.closed(50, 55), 'a'))
+        print()
+        print(tree.items())
+
+    def test_keys(self):
+        tree = self.create_simple_tree()
+        print()
+        print(tree.keys())
+
+    def test_values(self):
+        tree = self.create_simple_tree()
+        print()
+        print(tree.values())
+
+    def test_bug_insertion(self):
+        tree = P.IntervalTree()
+        tree.insert_interval(P.Node(P.closed(0, 2), 'a'))
+        tree.insert_interval(P.Node(P.closed(0, 1), 'a'))
         print()
         print(tree)
 

@@ -94,22 +94,6 @@ class IntervalTree:
             tree += self.display(x.right, level + 1)
         return tree
 
-    # def recursive_search(self, x, k):
-    #     if x.is_nil or x.interval.contains(k):
-    #         return x
-    #     if k < x.interval:
-    #         return self.recursive_search(x.left, k)
-    #     else:
-    #         return self.recursive_search(x.right, k)
-    #
-    # def iterative_search(self, x, k):
-    #     while not x.is_nil() and not x.interval.contains(k):
-    #         if k < x.interval:
-    #             x = x.left
-    #         else:
-    #             x = x.right
-    #     return x
-
     def successor(self, x):
         if not x.right.is_nil:
             return self.minimum(x.right)
@@ -513,7 +497,7 @@ class IntervalTree:
                     safe_subtree.append(x.right)
                 x = x.left
 
-        if interval in x.interval:
+        if interval in x.interval and x.interval != interval:
             new_interval = x.interval - interval
             x.interval = new_interval[0]
             if len(new_interval) == 2:
@@ -556,62 +540,6 @@ class IntervalTree:
             # delete all unsafe nodes
             for node in unsafe_node:
                 self.delete(node)
-
-    # def delete_interval2(self, interval):
-    #     x = self.root
-    #     safe_node = []
-    #     safe_subtree = []
-    #     unsafe_node = []
-    #     while not x.interval.overlaps(interval):
-    #         safe_node.append(x)
-    #         if x.interval < interval:
-    #             if not x.left.is_nil:
-    #                 safe_subtree.append(x.left)
-    #             x = x.right
-    #         else:
-    #             if not x.right.is_nil:
-    #                 safe_subtree.append(x.right)
-    #             x = x.left
-    #     if interval in x.interval:
-    #         new_interval = x.interval - interval
-    #         x.interval = new_interval[0]
-    #         if len(new_interval) == 2:
-    #             self.insert(Node(new_interval[1], x.value))
-    #         return
-    #     while self.predecessor(x).interval.overlaps(interval):
-    #         x = self.predecessor(x)
-    #     while not x.is_nil:
-    #         if x.interval in interval:
-    #             unsafe_node.append(x)
-    #         elif x.interval <= interval or x.interval >= interval:
-    #             x.interval = x.interval - interval
-    #             safe_node.append(x)
-    #         else:
-    #             safe_node.append(x)
-    #         x = self.successor(x)
-    #     safe = len(safe_node)
-    #     for node in safe_subtree:
-    #         safe = safe + node.size
-    #     unsafe = len(unsafe_node)
-    #     if unsafe >= self.root.size / 2:
-    #         # too many nodes to delete
-    #
-    #         # fuse safe nodes and safe subtree
-    #         for node in safe_subtree:
-    #             if not node.is_nil:
-    #                 current = self.minimum(node)
-    #                 while current != self.successor(node.maximum):
-    #                     safe_node.append(current)
-    #                     current = self.successor(current)
-    #
-    #         # create new tree and add all safe nodes
-    #         self.__init__()
-    #         for node in safe_node:
-    #             self.insert(Node(node.interval, node.value))
-    #     else:
-    #         # delete all unsafe nodes
-    #         for node in unsafe_node:
-    #             self.delete(node)
 
     def delete_value(self, value):
         """
@@ -822,7 +750,8 @@ class IntervalTree:
             elif z.interval in x.interval:
                 if z.value == x.value:
                     # case 2 : z interval is included in x interval and have the same value
-                    x.interval = z.interval
+                    if x.interval in z.interval:
+                        x.interval = z.interval
                 else:
                     # case 3 : z interval is included in x interval and have different value
                     new_intervals = x.interval - z.interval
@@ -888,5 +817,65 @@ class IntervalTree:
 
         self.rb_insert_fixup(z)
 
-    def insertNode(self, interval, value):
+    def insert_interval_value(self, interval, value):
         self.insert_interval(Node(interval, value))
+
+    def get(self, interval):
+        items = []
+        x = self.root
+        while not x.interval.overlaps(interval):
+            if x.interval < interval:
+                x = x.right
+            else:
+                x = x.left
+        while (not self.predecessor(x).is_nil) and (self.predecessor(x).interval.overlaps(interval)):
+            x = self.predecessor(x)
+        while x.interval.overlaps(interval) and not x.is_nil:
+            intersection = interval & x.interval
+            if not intersection.empty:
+                items.append((intersection, x.value))
+            x = self.successor(x)
+        return items
+
+    def items(self):
+        items = []
+        current = self.minimum(self.root)
+        while not current.is_nil:
+            value = False
+            for item in items:
+                if item[1] == current.value:
+                    item[0] |= current.interval
+                    value = True
+            if not value:
+                items.append([current.interval, current.value])
+            current = self.successor(current)
+        for i in range(len(items)):
+            items[i] = tuple(items[i])
+        return items
+
+    def keys(self):
+        keys = []
+        current = self.minimum(self.root)
+        while not current.is_nil:
+            keys.append(current.interval)
+            current = self.successor(current)
+        return keys
+
+    def values(self):
+        values = []
+        current = self.minimum(self.root)
+        while not current.is_nil:
+            if current.value not in values:
+                values.append(current.value)
+            current = self.successor(current)
+        return values
+
+    def find(self, value):
+        interval = empty()
+        current = self.minimum(self.root)
+        while not current.is_nil():
+            if current.value == value:
+                interval |= current.interval
+            current = self.successor(current)
+        return interval
+
