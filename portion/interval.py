@@ -649,7 +649,7 @@ class AbstractDiscreteInterval(Interval):
     the next and previous value given the current one.
 
     This class is still experimental and backward incompatible changes may
-    occur even in minor or patch updates of portion.
+    occur even in minor or patch updates of portion_master.
     """
 
     _step = None

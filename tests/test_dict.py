@@ -150,19 +150,6 @@ class TestIntervalDict:
         assert P.IntervalDict().combine(d, add) == d
         assert d.combine(P.IntervalDict(), add) == d
 
-    def test_bug(self):
-        d1 = P.IntervalDict([(P.closed(1, 3) | P.closed(5, 7), 1)])
-        d2 = P.IntervalDict([(P.closed(2, 4) | P.closed(6, 8), 2)])
-        # print()
-        # print(d1.combine(d2, lambda x, y: x + y)._storage)
-        # print(P.IntervalDict([
-        #     (P.closedopen(1, 2) | P.closedopen(5, 6), 1),
-        #     (P.closed(2, 3) | P.closed(6, 7), 3),
-        #     (P.openclosed(3, 4) | P.openclosed(7, 8), 2),
-        # ])._storage)
-        print()
-        print(d1[P.closedopen(1, 2) | P.closedopen(5, 6)])
-
     def test_combine_nonempty(self):
         def add(x, y): return x + y
         d1 = P.IntervalDict([(P.closed(1, 3) | P.closed(5, 7), 1)])

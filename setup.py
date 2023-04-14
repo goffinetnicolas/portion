@@ -8,7 +8,7 @@ with open(
     long_description = f.read()
 
 setup(
-    name="portion",
+    name="portion_master",
     version="2.4.0-pre1",
     license="LGPLv3",
     author="Alexandre Decan",
@@ -33,7 +33,7 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
     keywords="interval operation range math",
-    packages=find_packages(include=["portion"]),
+    packages=find_packages(include=["portion_master"]),
     python_requires="~= 3.7",
     install_requires=[
         "sortedcontainers ~= 2.2",

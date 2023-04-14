@@ -19,12 +19,12 @@ def partial(wrapped, *args, **kwargs):
 
 def create_api(interval, *, interval_dict=None, name=None):
     """
-    Dynamically create a module whose API is similar to the one of portion, but
+    Dynamically create a module whose API is similar to the one of portion_master, but
     configured to use given Interval class. Unless specified, a new IntervalDict
     subclass is automatically generated to use given Interval subclass.
 
     This feature is experimental, and may be changed even in minor or patch
-    updates of portion.
+    updates of portion_master.
 
     :param interval: a subclass of Interval.
     :param interval_dict: a subclass of IntervalDict.

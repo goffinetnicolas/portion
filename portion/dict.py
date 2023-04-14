@@ -114,7 +114,7 @@ class IntervalDict(MutableMapping):
 
     def items(self):
         """
-        Return a view object on the contained items sorted by key
+        Return a list of key values tuples sorted by key
         (see https://docs.python.org/3/library/stdtypes.html#dict-views).
 
         :return: a list of key values tuples.
@@ -180,7 +180,7 @@ class IntervalDict(MutableMapping):
         :return: a (key, value) pair.
         """
         # return self._storage.popitem()
-        delete = self._storage.maximum(self._storage.root)
+        delete = self._storage.root.maximum
         if delete.is_nil:
             raise KeyError
         else:
@@ -243,10 +243,6 @@ class IntervalDict(MutableMapping):
 
         dom1, dom2 = self.domain(), other.domain()
 
-        # TODO rework 2 lines below
-        print("check0 ", dom1 - dom2)
-        print("check1 ", self[dom1 - dom2])
-        print("check2 ", other[dom2 - dom1])
         new_items.extend(self[dom1 - dom2].items())
         new_items.extend(other[dom2 - dom1].items())
 
@@ -302,11 +298,11 @@ class IntervalDict(MutableMapping):
         if isinstance(key, Interval):
             items = []
             for i in key:
-                if not (i < self._storage.minimum(x).interval or i > self._storage.maximum(x).interval):
-                    items.append(self._storage.get(key))
+                if not (i < x.minimum.interval or i > x.maximum.interval):
+                    items.extend(self._storage.get(i))
             return self.__class__._from_items(items)
         else:
-            if key < self._storage.minimum(x).interval or key > self._storage.maximum(x).interval:
+            if key < x.minimum.interval or key > x.maximum.interval:
                 raise KeyError(key)
             while not x.is_nil:
                 if key in x.interval:
@@ -354,7 +350,6 @@ class IntervalDict(MutableMapping):
         #     self._storage[key] = value
 
         if isinstance(key, Interval):
-            # TODO non atomic interval as key
             interval = key
         else:
             interval = self._klass.from_atomic(Bound.CLOSED, key, key, Bound.CLOSED)
@@ -407,8 +402,7 @@ class IntervalDict(MutableMapping):
             return
 
         for i in interval:
-            if i < self._storage.minimum(self._storage.root).interval or i > self._storage.maximum(
-                    self._storage.root).interval:
+            if i < self._storage.root.minimum.interval or i > self._storage.root.maximum.interval:
                 if not isinstance(key, Interval):
                     raise KeyError(key)
             else:

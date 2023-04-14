@@ -9,7 +9,7 @@ class TestIntervalTree:
         Check if the tree is well-structured with respect to the nil node (must always be black)
         """
 
-        current = tree.minimum(tree.root)
+        current = tree.root.minimum
         while not current.is_nil:
             if current.left.is_nil:
                 if current.left.color == True:
@@ -26,7 +26,7 @@ class TestIntervalTree:
         If a node is red, then both its children are black
         """
 
-        current = tree.minimum(tree.root)
+        current = tree.root.minimum
         while not current.is_nil:
             if current.color == True:
                 if current.left.color == True or current.right.color == True:
@@ -40,7 +40,7 @@ class TestIntervalTree:
         For each node, all simple paths from the node to descendant leaves contain the same number of black nodes
         """
 
-        current = tree.minimum(tree.root)
+        current = tree.root.minimum
         while not current.is_nil:
             if not self.check_black_colors(current, tree):
                 return False
@@ -63,7 +63,7 @@ class TestIntervalTree:
         to descendant leaves contain the same number of black nodes
         """
 
-        current = tree.minimum(x)
+        current = x.minimum
         paths = []
         while current != tree.successor(x.maximum):
             if current.left.is_nil:
@@ -121,7 +121,7 @@ class TestIntervalTree:
             return True
 
         visited = []
-        current = tree.minimum(tree.root)
+        current = tree.root.minimum
         while not current.is_nil:
             for v in visited:
                 if v.interval.overlaps(current.interval):
@@ -131,7 +131,7 @@ class TestIntervalTree:
         return self.check_rb_tree(tree)
 
     def check_min_max(self,tree):
-        current = tree.minimum(tree.root)
+        current = tree.root.minimum
         while not current.is_nil:
             if current.maximum != current.maximum:
                 print(current)
@@ -155,6 +155,14 @@ class TestIntervalTree:
         while not x.right.is_nil:
             x = x.right
         return x
+
+    def check_size(self, tree):
+        current = tree.root.minimum
+        while not current.is_nil:
+            if current.size != current.left.size + current.right.size + 1:
+                return False
+            current = tree.successor(current)
+        return True
 
     def create_simple_tree(self):
         tree = P.IntervalTree()
@@ -245,8 +253,8 @@ class TestIntervalTree:
     def test_insert_interval_case2(self):
         tree = self.create_simple_tree()
         tree.root.left.interval = P.closed(8,12)
-        tree.insert_interval(P.Node(P.closed(9, 10), 'b'))
-        assert tree.root.left == P.Node(P.closed(9, 10), 'b')
+        tree.insert_interval(P.Node(P.closed(9, 10), 'a'))
+        assert tree.root.left == P.Node(P.closed(9, 10), 'a')
         assert self.check_interval_tree(tree) == True
         assert self.check_min_max(tree) == True
 
@@ -358,42 +366,37 @@ class TestIntervalTree:
         tree = self.create_simple_tree()
         tree.right_rotate(tree.root)
         assert self.check_min_max(tree) == True
+        assert self.check_size(tree) == True
         tree.right_rotate(tree.root)
         assert self.check_min_max(tree) == True
 
     def test_delete_interval(self):
         tree = self.create_simple_tree()
-        print()
-        print(tree)
         tree.delete_interval(P.closed(18,22))
-        print()
-        print(tree)
+        assert tree.root == P.Node(P.closedopen(16,18), 'a')
+        assert tree.root.right.left == P.Node(P.openclosed(22,23), 'f')
+        assert self.check_interval_tree(tree) == True
 
     def test_get(self):
         tree = self.create_simple_tree()
-        print()
-        print(tree.get(P.closed(14,25)))
+        assert tree.get(P.closed(14,25)) == [(P.singleton(15), 'e'), (P.closed(16,21), 'a'), (P.openclosed(21,23), 'f'), (P.singleton(24), 'h')]
 
     def test_items(self):
         tree = self.create_simple_tree()
         tree.insert_interval(P.Node(P.closed(50, 55), 'a'))
-        print()
-        print(tree.items())
+        assert tree.items() == [(P.closed(4, 5), 'd'), (P.closed(9,10), 'b'), (P.singleton(15), 'e'), (P.closed(16, 21) | P.closed(50,55), 'a'), (P.openclosed(21, 23), 'f'), (P.singleton(24), 'h'), (P.closed(28, 29), 'c'), (P.closedopen(30, 32), 'g'), (P.singleton(40), 'i')]
 
     def test_keys(self):
         tree = self.create_simple_tree()
-        print()
-        print(tree.keys())
+        assert tree.keys() == [P.closed(4, 5), P.closed(9,10), P.singleton(15), P.closed(16, 21), P.openclosed(21, 23), P.singleton(24), P.closed(28, 29), P.closedopen(30, 32), P.singleton(40)]
 
     def test_values(self):
         tree = self.create_simple_tree()
-        print()
-        print(tree.values())
+        assert tree.values() == ['d', 'b', 'e', 'a', 'f', 'h', 'c', 'g', 'i']
 
     def test_bug_insertion(self):
         tree = P.IntervalTree()
         tree.insert_interval(P.Node(P.closed(0, 2), 'a'))
         tree.insert_interval(P.Node(P.closed(0, 1), 'a'))
-        print()
-        print(tree)
+        assert tree.root == P.Node(P.closed(0, 2), 'a')
 
