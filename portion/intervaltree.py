@@ -1,5 +1,5 @@
 from .func import empty
-
+from .interval import Interval
 
 class Node:
     """
@@ -48,7 +48,7 @@ class Node:
         compute the enclosure of the subtree
         """
 
-        return (self.minimum.interval | self.maximum.interval).enclosure
+        return Interval.from_atomic(self.minimum.interval.left, self.minimum.interval.lower, self.maximum.interval.upper, self.maximum.interval.right)
 
     def __eq__(self, other):
         if isinstance(other, Node):
