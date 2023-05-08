@@ -519,7 +519,6 @@ class IntervalTree:
             new_interval = x.interval - interval
             x.interval = new_interval[0]
             if len(new_interval) == 2:
-                # special case
                 self.insert(Node(new_interval[1], x.value))
                 return
             else:
@@ -560,20 +559,6 @@ class IntervalTree:
             # delete all unsafe nodes
             for node in unsafe_node:
                 self.delete(node)
-
-    def delete_value(self, value):
-        """
-        Delete all nodes found in the tree corresponding to the value
-        """
-
-        delete = []
-        current = self.root.minimum
-        while not current.is_nil:
-            if current.value == value:
-                delete.append(current)
-            current = self.successor(current)
-        for node in delete:
-            self.delete(node)
 
     def locate_nodes_insertion(self, x, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node):
         """
