@@ -377,9 +377,9 @@ class TestIntervalTree:
         assert tree.root.right.left == P.Node(P.openclosed(22,23), 'f')
         assert self.check_interval_tree(tree) == True
 
-    def test_get(self):
+    def test_search(self):
         tree = self.create_simple_tree()
-        assert tree.get(P.closed(14,25)) == [(P.singleton(15), 'e'), (P.closed(16,21), 'a'), (P.openclosed(21,23), 'f'), (P.singleton(24), 'h')]
+        assert tree.search(P.closed(14,25)) == [(P.singleton(15), 'e'), (P.closed(16,21), 'a'), (P.openclosed(21,23), 'f'), (P.singleton(24), 'h')]
 
     def test_items(self):
         tree = self.create_simple_tree()

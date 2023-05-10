@@ -862,24 +862,24 @@ class IntervalTree:
 
         self.insert_interval(Node(interval, value))
 
-    def get(self, interval):
+    def search(self, key):
         """
         visit the tree to get the items associated to the interval
-        :param interval: the target interval
+        :param key: the target interval
         :return: a list of tuples (interval, value) where the interval is the intersection between the target interval
         """
 
         items = []
         x = self.root
-        while not x.interval.overlaps(interval):
-            if x.interval < interval:
+        while not x.interval.overlaps(key):
+            if x.interval < key:
                 x = x.right
             else:
                 x = x.left
-        while (not self.predecessor(x).is_nil) and (self.predecessor(x).interval.overlaps(interval)):
+        while self.predecessor(x).interval.overlaps(key):
             x = self.predecessor(x)
-        while x.interval.overlaps(interval) and not x.is_nil:
-            intersection = interval & x.interval
+        while x.interval.overlaps(key):
+            intersection = key & x.interval
             if not intersection.empty:
                 items.append((intersection, x.value))
             x = self.successor(x)
@@ -894,12 +894,13 @@ class IntervalTree:
         items = []
         current = self.root.minimum
         while not current.is_nil:
-            value = False
+            found = False
             for item in items:
                 if item[1] == current.value:
                     item[0] |= current.interval
-                    value = True
-            if not value:
+                    found = True
+                    break
+            if not found:
                 items.append([current.interval, current.value])
             current = self.successor(current)
         for i in range(len(items)):

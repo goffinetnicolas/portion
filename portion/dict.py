@@ -299,7 +299,7 @@ class IntervalDict(MutableMapping):
             items = []
             for i in key:
                 if not (i < x.minimum.interval or i > x.maximum.interval):
-                    items.extend(self._storage.get(i))
+                    items.extend(self._storage.search(i))
             return self.__class__._from_items(items)
         else:
             if key < x.minimum.interval or key > x.maximum.interval:
