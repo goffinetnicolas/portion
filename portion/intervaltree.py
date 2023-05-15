@@ -560,84 +560,84 @@ class IntervalTree:
             for node in unsafe_node:
                 self.delete(node)
 
-    def locate_nodes_insertion(self, x, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node):
+    def locate_nodes_insertion(self, y, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node):
         """
         Recursive function to modify the subtree
         Nodes that overlap with z must be deleted or cut
 
-        @param x: node used to visit the subtree
+        @param y: node used to visit the subtree
         @param z: inserted node
         @param safe_subtree: list of subtrees that will not be deleted
         @param safe_node: list of nodes that will not be deleted
-        @param modify: list of nodes that have to modify z (we noticed that z can be extended)
+        @param modify: list of nodes that have to modify x (we noticed that x can be extended one more time)
         @param unsafe_subtree: list of subtrees that will be deleted
         @param unsafe_node: list of nodes that will be deleted
         """
 
-        if x.is_nil:
+        if y.is_nil:
             return
-        if x.interval < z.interval:
-            safe_node.append(x)
-            if not x.left.is_nil:
-                safe_subtree.append(x.left)
-            if not self.check_right_enclosure(x, z.interval, safe_subtree, unsafe_subtree):
-                self.locate_nodes_insertion(x.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
+        if y.interval < z.interval:
+            safe_node.append(y)
+            if not y.left.is_nil:
+                safe_subtree.append(y.left)
+            if not self.check_right_enclosure(y, z.interval, safe_subtree, unsafe_subtree):
+                self.locate_nodes_insertion(y.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
             return
-        elif x.interval > z.interval:
-            safe_node.append(x)
-            if not x.right.is_nil:
-                safe_subtree.append(x.right)
-            if not self.check_left_enclosure(x, z.interval, safe_subtree, unsafe_subtree):
-                self.locate_nodes_insertion(x.left, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
+        elif y.interval > z.interval:
+            safe_node.append(y)
+            if not y.right.is_nil:
+                safe_subtree.append(y.right)
+            if not self.check_left_enclosure(y, z.interval, safe_subtree, unsafe_subtree):
+                self.locate_nodes_insertion(y.left, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
             return
-        elif x.interval in z.interval:
-            unsafe_node.append(x)
-            if not self.check_right_enclosure(x, z.interval, safe_subtree, unsafe_subtree):
-                self.locate_nodes_insertion(x.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
-            if not self.check_left_enclosure(x, z.interval, safe_subtree, unsafe_subtree):
-                self.locate_nodes_insertion(x.left, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
+        elif y.interval in z.interval:
+            unsafe_node.append(y)
+            if not self.check_right_enclosure(y, z.interval, safe_subtree, unsafe_subtree):
+                self.locate_nodes_insertion(y.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
+            if not self.check_left_enclosure(y, z.interval, safe_subtree, unsafe_subtree):
+                self.locate_nodes_insertion(y.left, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
             return
-        elif x.interval <= z.interval:
-            if x.value == z.value:
-                if not x.left.is_nil:
-                    safe_subtree.append(x.left)
-                if not x.right.is_nil:
-                    unsafe_subtree.append(x.right)
-                modify.append(x)
-                unsafe_node.append(x)
+        elif y.interval <= z.interval:
+            if y.value == z.value:
+                if not y.left.is_nil:
+                    safe_subtree.append(y.left)
+                if not y.right.is_nil:
+                    unsafe_subtree.append(y.right)
+                modify.append(y)
+                unsafe_node.append(y)
                 return
             else:
-                x.interval = x.interval - z.interval
-                safe_node.append(x)
-                if not x.right.is_nil:
-                    unsafe_subtree.append(x.right)
-                if not x.left.is_nil:
-                    safe_subtree.append(x.left)
+                y.interval = y.interval - z.interval
+                safe_node.append(y)
+                if not y.right.is_nil:
+                    unsafe_subtree.append(y.right)
+                if not y.left.is_nil:
+                    safe_subtree.append(y.left)
                 return
         else:
             # x.interval >= z
-            if x.value == z.value:
-                if not x.right.is_nil:
-                    safe_subtree.append(x.right)
-                if not x.left.is_nil:
-                    unsafe_subtree.append(x.left)
-                modify.append(x)
-                unsafe_node.append(x)
+            if y.value == z.value:
+                if not y.right.is_nil:
+                    safe_subtree.append(y.right)
+                if not y.left.is_nil:
+                    unsafe_subtree.append(y.left)
+                modify.append(y)
+                unsafe_node.append(y)
                 return
             else:
-                x.interval = x.interval - z.interval
-                safe_node.append(x)
-                if not x.left.is_nil:
-                    unsafe_subtree.append(x.left)
-                if not x.right.is_nil:
-                    safe_subtree.append(x.right)
+                y.interval = y.interval - z.interval
+                safe_node.append(y)
+                if not y.left.is_nil:
+                    unsafe_subtree.append(y.left)
+                if not y.right.is_nil:
+                    safe_subtree.append(y.right)
                 return
 
-    def check_left_enclosure(self, x, interval, safe_subtree, unsafe_subtree):
+    def check_left_enclosure(self, y, interval, safe_subtree, unsafe_subtree):
         """
         Check the left enclosure x and decide which action to take
 
-        :param x: the input node
+        :param y: the input node
         :param interval: the target interval
         :param safe_subtree: used to store x.left if it is safe
         :param unsafe_subtree: used to store x.left if it is unsafe
@@ -645,39 +645,39 @@ class IntervalTree:
 
         """
 
-        if x.left.is_nil:
+        if y.left.is_nil:
             return True
-        if x.left.subtree_enclosure < interval:
-            if not x.left.is_nil:
-                safe_subtree.append(x.left)
+        if y.left.subtree_enclosure < interval:
+            if not y.left.is_nil:
+                safe_subtree.append(y.left)
             return True
-        elif x.left.subtree_enclosure in interval:
-            if not x.left.is_nil:
-                unsafe_subtree.append(x.left)
+        elif y.left.subtree_enclosure in interval:
+            if not y.left.is_nil:
+                unsafe_subtree.append(y.left)
             return True
         else:
             return False
 
-    def check_right_enclosure(self, x, interval, safe_subtree, unsafe_subtree):
+    def check_right_enclosure(self, y, interval, safe_subtree, unsafe_subtree):
         """
         Check the right enclosure x and decide which action to take
 
-        :param x: the input node
+        :param y: the input node
         :param interval: the target interval
         :param safe_subtree: used to store x.right if it is safe
         :param unsafe_subtree: used to store x.right if it is unsafe
         :return: True if x.right subtree is safe or unsafe, False otherwise (we must continue to visit x.right)
         """
 
-        if x.right.is_nil:
+        if y.right.is_nil:
             return True
-        if x.right.subtree_enclosure > interval:
-            if not x.right.is_nil:
-                safe_subtree.append(x.right)
+        if y.right.subtree_enclosure > interval:
+            if not y.right.is_nil:
+                safe_subtree.append(y.right)
             return True
-        elif x.right.subtree_enclosure in interval:
-            if not x.right.is_nil:
-                unsafe_subtree.append(x.right)
+        elif y.right.subtree_enclosure in interval:
+            if not y.right.is_nil:
+                unsafe_subtree.append(y.right)
             return True
         else:
             return False
@@ -703,20 +703,22 @@ class IntervalTree:
         if not self.check_right_enclosure(x, z.interval, safe_subtree, unsafe_subtree):
             self.locate_nodes_insertion(x.right, z, safe_subtree, safe_node, modify, unsafe_subtree, unsafe_node)
 
-        # extend z interval
+        # extend x interval
         for node in modify:
             x.interval = x.interval | node.interval
 
         # compute the number of nodes to be deleted
-        safe = len(safe_node)
-        for node in safe_subtree:
-            safe = safe + node.size
-        unsafe = len(unsafe_node)
+        unsafe_count = len(unsafe_node)
         for node in unsafe_subtree:
-            unsafe = unsafe + node.size
+            unsafe_count = unsafe_count + node.size
 
-        if unsafe >= self.root.size / 2:
+        if unsafe_count >= self.root.size / 2:
             # too many nodes to delete
+
+            # count the number of nodes to not be deleted
+            safe_count = len(safe_node)
+            for node in safe_subtree:
+                safe_count = safe_count + node.size
 
             # fuse safe nodes and safe subtree
             for node in safe_subtree:
