@@ -911,16 +911,11 @@ class IntervalTree:
 
     def keys(self):
         """
-        visit the tree to get all intervals
+        visit the tree to get all keys
         :return: a list of intervals
         """
 
-        keys = []
-        current = self.root.minimum
-        while not current.is_nil:
-            keys.append(current.interval)
-            current = self.successor(current)
-        return keys
+        return [item[0] for item in self.items()]
 
     def values(self):
         """
@@ -935,3 +930,18 @@ class IntervalTree:
                 values.append(current.value)
             current = self.successor(current)
         return values
+
+    def find(self, value):
+        """
+        get the key associated to the value
+        :param value: the input value
+        :return: the interval associated to the value
+        """
+
+        key = empty()
+        x = self.root.minimum
+        while not x.is_nil:
+            if x.value == value:
+                key |= x.interval
+            x = self.successor(x)
+        return key

@@ -110,7 +110,9 @@ class IntervalDict(MutableMapping):
         :param value: value to look for.
         :return: an Interval instance.
         """
-        return self._klass(*(i for i, v in self._storage.items() if v == value))
+        return self._storage.find(value)
+        #return self._klass(*(i for i, v in self._storage.items() if v == value))
+
 
     def items(self):
         """
