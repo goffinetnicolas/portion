@@ -400,3 +400,17 @@ class TestIntervalTree:
         tree.insert_interval(P.Node(P.closed(0, 1), 'a'))
         assert tree.root == P.Node(P.closed(0, 2), 'a')
 
+    def test_find(self):
+        tree = self.create_simple_tree()
+        assert tree.find('a') == P.closed(16, 21)
+        assert tree.find('b') == P.closed(9, 10)
+        assert tree.find('c') == P.closed(28, 29)
+        assert tree.find('d') == P.closed(4, 5)
+        assert tree.find('e') == P.singleton(15)
+        assert tree.find('f') == P.openclosed(21, 23)
+        assert tree.find('g') == P.closedopen(30, 32)
+        assert tree.find('h') == P.singleton(24)
+        assert tree.find('i') == P.singleton(40)
+        assert tree.find('j') == P.empty()
+
+
