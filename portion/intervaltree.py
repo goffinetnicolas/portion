@@ -784,39 +784,34 @@ class IntervalTree:
                 # case 1 : x interval is equal to z interval
                 x.value = z.value
                 return
-            elif z.interval in x.interval:
-                if z.value == x.value:
-                    # case 2 : z interval is included in x interval and have the same value
-                    if x.interval in z.interval:
-                        x.interval = z.interval
-                else:
-                    # case 3 : z interval is included in x interval and have different value
-                    new_intervals = x.interval - z.interval
-                    x.interval = z.interval
-                    for interval in new_intervals:
-                        self.insert(Node(interval, x.value))
-                    x.value = z.value
+            elif z.interval in x.interval and z.value != x.value:
+                # case 2 : z interval is included in x interval and have different value
+                new_intervals = x.interval - z.interval
+                x.interval = z.interval
+                for interval in new_intervals:
+                    self.insert(Node(interval, x.value))
+                x.value = z.value
                 return
             elif x.interval in z.interval:
-                # case 4 : x interval is included in z interval
+                # case 3 : x interval is included in z interval
                 x.interval = z.interval
                 x.value = z.value
                 self.modify(x, z)
                 return
             elif z.interval <= x.interval:
                 if x.value == z.value:
-                    # case 5 : z interval <= x interval and have the same value
+                    # case 4 : z interval <= x interval and have the same value
                     # extend x value
                     x.interval = x.interval | z.interval
                     self.modify(x, z)
                     return
                 else:
                     # cut left x value
-                    # case 6 : x interval <= z interval and have different value
+                    # case 5 : x interval <= z interval and have different value
                     x.interval = x.interval - z.interval
                     x = x.left
             else:
-                # symmetric case of case 5 and 6
+                # symmetric case of case 4 and 5
                 if x.value == z.value:
                     x.interval = x.interval | z.interval
                     self.modify(x, z)
