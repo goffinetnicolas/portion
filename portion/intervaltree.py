@@ -735,9 +735,9 @@ class IntervalTree:
                     current = current.p
                     safe_node.append(current)
                     # add all nodes in the right subtree of current node
-                    left_sub = current.right
-                    current2 = left_sub.minimum
-                    while current2 != self.successor(left_sub.maximum):
+                    other_sub = current.right
+                    current2 = other_sub.minimum
+                    while current2 != self.successor(other_sub.maximum):
                         safe_node.append(current2)
                         current2 = self.successor(current2)
                 else:
@@ -745,9 +745,9 @@ class IntervalTree:
                     current = current.p
                     safe_node.append(current)
                     # add all nodes in the left subtree of current node
-                    left_sub = current.left
-                    current2 = left_sub.minimum
-                    while current2 != self.successor(left_sub.maximum):
+                    other_sub = current.left
+                    current2 = other_sub.minimum
+                    while current2 != self.successor(other_sub.maximum):
                         safe_node.append(current2)
                         current2 = self.successor(current2)
 
