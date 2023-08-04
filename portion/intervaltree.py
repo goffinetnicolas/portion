@@ -520,9 +520,7 @@ class IntervalTree:
             x.interval = new_interval[0]
             if len(new_interval) == 2:
                 self.insert(Node(new_interval[1], x.value))
-                return
-            else:
-                return
+            return
 
         self.locate_nodes_deletion(x, interval, safe_node, safe_subtree, unsafe_node, unsafe_subtree)
 
