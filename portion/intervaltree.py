@@ -712,11 +712,6 @@ class IntervalTree:
         if unsafe_count >= self.root.size / 2:
             # too many nodes to delete
 
-            # count the number of nodes to not be deleted
-            safe_count = len(safe_node)
-            for node in safe_subtree:
-                safe_count = safe_count + node.size
-
             # fuse safe nodes and safe subtree
             for node in safe_subtree:
                 if not node.is_nil:
