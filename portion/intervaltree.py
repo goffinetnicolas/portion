@@ -527,14 +527,11 @@ class IntervalTree:
         self.locate_nodes_deletion(x, interval, safe_node, safe_subtree, unsafe_node, unsafe_subtree)
 
         # computing the number of nodes to delete
-        safe = len(safe_node)
-        for node in safe_subtree:
-            safe = safe + node.size
-        unsafe = len(unsafe_node)
+        unsafe_count = len(unsafe_node)
         for node in unsafe_subtree:
-            unsafe = unsafe + node.size
+            unsafe_count = unsafe_count + node.size
 
-        if unsafe >= self.root.size / 2:
+        if unsafe_count >= self.root.size / 2:
             # too many nodes to delete
 
             # fuse safe nodes and safe subtree
