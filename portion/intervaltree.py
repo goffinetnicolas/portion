@@ -923,10 +923,23 @@ class IntervalTree:
         :return: the interval associated to the value
         """
 
-        key = empty()
+        key = []
         x = self.root.minimum
         while not x.is_nil:
             if x.value == value:
-                key |= x.interval
+                key.append(x.interval)
             x = self.successor(x)
-        return key
+        return Interval(*key)
+
+    def domain(self):
+        """
+        get the domain of the tree
+        :return: the domain of the tree
+        """
+
+        domain = []
+        x = self.root.minimum
+        while not x.is_nil:
+            domain.append(x.interval)
+            x = self.successor(x)
+        return Interval(*domain)

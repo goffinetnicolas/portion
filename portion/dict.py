@@ -59,6 +59,15 @@ class IntervalDict(MutableMapping):
 
         return d
 
+    @classmethod
+    def _from_interval_tree(cls, interval_tree):
+        d = cls()
+        x = interval_tree.root.minimum
+        while not x.is_nil:
+            d[x.interval] = x.value
+            x = interval_tree.successor(x)
+        return d
+
     def clear(self):
         """
         Remove all items from the IntervalDict.
@@ -71,7 +80,9 @@ class IntervalDict(MutableMapping):
 
         :return: a shallow copy.
         """
-        return self.__class__._from_items(self.items())
+        #return self.__class__._from_items(self.items())
+        return self.__class__._from_interval_tree(self._storage)
+
 
     def get(self, key, default=None):
         """
@@ -140,7 +151,7 @@ class IntervalDict(MutableMapping):
 
         :return: an Interval.
         """
-        return self._klass(*self.keys())
+        return self._klass(self._storage.domain())
 
     def pop(self, key, default=None):
         """
